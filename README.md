@@ -45,6 +45,7 @@ Maven (usa `~/.m2` automaticamente):
 Plugin IntelliJ: `./gradlew :relato-intellij:buildPlugin` → `Settings → Plugins → ⚙ → Install Plugin from Disk…` → `relato-intellij/build/distributions/relato-intellij-0.1.0.zip`.
 
 Passo a passo com projetos de teste: [TUTORIAL.md](TUTORIAL.md) (`demo-spring/` e `demo-quarkus/`).
+Como o código está organizado (para quem vai mexer): [ARCHITECTURE.md](ARCHITECTURE.md).
 
 > Build: rode o Gradle com o JBR da IDE (`JAVA_HOME="C:/Users/.../IntelliJ IDEA/jbr"`); o plugin usa a IDE local como SDK (`ideaLocalPath` em `gradle.properties`).
 
