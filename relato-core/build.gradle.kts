@@ -26,7 +26,12 @@ tasks.withType<JavaCompile>().configureEach {
     options.compilerArgs.add("-parameters")
 }
 
-tasks.test { useJUnitPlatform() }
+tasks.test {
+    useJUnitPlatform()
+    systemProperty("relato.perf", System.getProperty("relato.perf") ?: "false")
+    maxHeapSize = System.getProperty("relato.heap") ?: "2g"
+    testLogging { showStandardStreams = System.getProperty("relato.perf") == "true" }
+}
 
 publishing {
     publications {

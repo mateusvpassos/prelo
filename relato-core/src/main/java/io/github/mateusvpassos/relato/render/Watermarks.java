@@ -22,6 +22,15 @@ final class Watermarks {
 
     static void apply(byte[] pdf, Node.Watermark w, OutputStream out) {
         try (PDDocument doc = Loader.loadPDF(pdf)) {
+            applyTo(doc, w);
+            doc.save(out);
+        } catch (IOException e) {
+            throw new ReportException("falha ao aplicar marca d'água: " + e.getMessage(), e);
+        }
+    }
+
+    static void applyTo(PDDocument doc, Node.Watermark w) throws IOException {
+        {
             PDType1Font font = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
             PDImageXObject image = null;
             if (w.imageSrc() != null) {
@@ -60,9 +69,6 @@ final class Watermarks {
                     cs.restoreGraphicsState();
                 }
             }
-            doc.save(out);
-        } catch (IOException e) {
-            throw new ReportException("falha ao aplicar marca d'água: " + e.getMessage(), e);
         }
     }
 

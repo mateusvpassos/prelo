@@ -20,6 +20,13 @@ public final class ReportRenderer {
     private final Function<String, ReportTemplate> includes;
     private final List<PdfRenderer.FontFile> fonts = new ArrayList<>();
     private String defaultFamily;
+    private int chunkRows = 4000;
+
+    /** Tabelas com mais linhas que isso geram o PDF em blocos (memória limitada). 0 desliga. */
+    public ReportRenderer chunkRows(int rows) {
+        this.chunkRows = rows;
+        return this;
+    }
 
     public ReportRenderer(Formatter formatter, ResourceResolver resources, List<Font> fonts) {
         this(formatter, resources, fonts, null);
@@ -51,7 +58,12 @@ public final class ReportRenderer {
     }
 
     public void pdf(ReportTemplate t, Object data, Map<String, ?> params, OutputStream out) {
-        Node.Document doc = PageTotals.apply(evaluate(t, data, params), fonts, formatter);
+        Node.Document evaluated = evaluate(t, data, params);
+        if (chunkRows > 0 && ChunkedPdf.applicable(evaluated, chunkRows)) {
+            ChunkedPdf.render(evaluated, fonts, chunkRows, out);
+            return;
+        }
+        Node.Document doc = PageTotals.apply(evaluated, fonts, formatter);
         if (doc.watermark() == null) {
             PdfRenderer.render(HtmlRenderer.render(doc), fonts, out);
             return;

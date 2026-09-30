@@ -32,7 +32,7 @@ public final class Relato {
         this.cache = b.cache;
         Formatter formatter = new Formatter(b.locale, b.zone, b.datePattern, b.dateTimePattern);
         ResourceResolver res = b.resources != null ? b.resources : ResourceResolver.standard(b.classLoader, null);
-        this.renderer = new ReportRenderer(formatter, res, b.fonts, this::template);
+        this.renderer = new ReportRenderer(formatter, res, b.fonts, this::template).chunkRows(b.chunkRows);
     }
 
     /** Padrões: templates em {@code classpath:reports/}, pt-BR, America/Sao_Paulo. */
@@ -73,6 +73,7 @@ public final class Relato {
         private ResourceResolver resources;
         private ClassLoader classLoader;
         private final List<ReportRenderer.Font> fonts = new ArrayList<>();
+        private int chunkRows = 4000;
 
         private Builder() {}
 
@@ -121,6 +122,15 @@ public final class Relato {
         /** Registra uma fonte TTF para usar em {@code style: {font: "Família"}}. */
         public Builder font(Supplier<InputStream> ttf, String family, int weight, boolean italic) {
             fonts.add(new ReportRenderer.Font(ttf, family, weight, italic));
+            return this;
+        }
+
+        /**
+         * Tabelas com mais linhas que isso geram o PDF em blocos, com memória limitada ao bloco (padrão 4000;
+         * 0 desliga). O resultado é o mesmo documento contínuo, com numeração de páginas correta.
+         */
+        public Builder chunkRows(int rows) {
+            this.chunkRows = rows;
             return this;
         }
 

@@ -6,10 +6,31 @@ import java.util.List;
 
 /** Gera XHTML com CSS de mídia paginada (cabeçalho/rodapé repetidos, números de página, tabelas paginadas). */
 final class HtmlRenderer {
+    /** Marcadores de nº de página usados para medir onde carimbar (modo em blocos). */
+    static final String PAGE_MARK = "§";   // §: um caractere, cabe no espaço reservado
+    static final String PAGES_MARK = "¶";  // ¶
+
+    /**
+     * Nº de página: contador CSS (normal); espaço vazio de largura fixa (SLOTS, carimbado depois);
+     * ou o espaço com o marcador (PROBE, para achar a posição). Ver {@link ChunkedPdf}.
+     */
+    enum PageNumbers { CSS, SLOTS, PROBE }
+
     private final StringBuilder sb = new StringBuilder(16 * 1024);
+    private final PageNumbers pageNumbers;
+    private final int digits;
+
+    private HtmlRenderer(PageNumbers pageNumbers, int digits) {
+        this.pageNumbers = pageNumbers;
+        this.digits = digits;
+    }
 
     static String render(Node.Document doc) {
-        HtmlRenderer r = new HtmlRenderer();
+        return render(doc, PageNumbers.CSS, 0);
+    }
+
+    static String render(Node.Document doc, PageNumbers mode, int digits) {
+        HtmlRenderer r = new HtmlRenderer(mode, digits);
         r.document(doc);
         return r.sb.toString();
     }
@@ -101,11 +122,20 @@ final class HtmlRenderer {
     private void segments(List<Object> segs) {
         int start = sb.length();
         for (Object s : segs) {
-            if (s == PageRef.PAGE) sb.append("<span class=\"rl-page\"></span>");
-            else if (s == PageRef.PAGES) sb.append("<span class=\"rl-pages\"></span>");
+            if (s == PageRef.PAGE) pageRef("rl-page", PAGE_MARK);
+            else if (s == PageRef.PAGES) pageRef("rl-pages", PAGES_MARK);
             else sb.append(escape(String.valueOf(s)).replace("\n", "<br/>"));
         }
         if (sb.length() == start) sb.append("&#160;");
+    }
+
+    private void pageRef(String cssClass, String mark) {
+        if (pageNumbers == PageNumbers.CSS) {
+            sb.append("<span class=\"").append(cssClass).append("\"></span>");
+            return;
+        }
+        sb.append("<span class=\"rl-slot\" style=\"width:").append(Math.max(1, digits) * 0.56 + 0.25).append("em\">")
+                .append(pageNumbers == PageNumbers.PROBE ? mark : "").append("</span>");
     }
 
     private void row(Node.Row r) {
@@ -299,6 +329,7 @@ final class HtmlRenderer {
             tr.rl-pt td { font-weight: bold; font-style: italic; background: #f7f8fa; border-top: 0.5pt solid #a9b1bc; }
             .rl-page-footer { position: running(rlFooter); }
             .rl-page::after { content: counter(page); }
+            .rl-slot { display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: baseline; text-align: left; }
             .rl-pages::after { content: counter(pages); }
             .rl-text { margin: 0 0 1.5pt 0; }
             .rl-image img { max-width: 100%; }

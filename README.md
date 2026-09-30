@@ -190,6 +190,18 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 - Na barra: zoom, **Dados de exemplo** (cria/abre o sample) e exportar PDF/XLSX/HTML.
 - `New → Relatório Relato` cria um template inicial.
 
+## Relatórios grandes
+
+Tabelas com mais de `chunkRows` linhas (padrão 4000) geram o PDF em blocos. Cada bloco termina numa quebra de página medida; os PDFs são juntados em disco e os números de página são carimbados no fim. O documento é o mesmo do modo normal: mesmas quebras, cabeçalhos, totais e "Página X de Y".
+
+| linhas | PDF | XLSX | heap necessário |
+|---|---|---|---|
+| 5.000 | ~2 s | 0,1 s | < 256 MB |
+| 20.000 | ~4 s | 0,2 s | < 256 MB |
+| 50.000 (~1.100 páginas) | ~9 s | 0,5 s | < 256 MB (sem blocos: > 1 GB) |
+
+Configuração: `Relato.builder().chunkRows(4000)` ou `relato.chunk-rows=4000`; `0` desliga os blocos. Tabelas com `pageTotals` não usam blocos.
+
 ## Migrar do JasperReports
 
 - **No IntelliJ**: clique com o botão direito num `.jrxml` ou numa pasta e escolha **Converter para Relato (.report.json)**. O `.report.json` fica ao lado do original.
@@ -226,5 +238,6 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 - [x] Designer: redimensionar colunas, copiar/colar, preview lado a lado, seleção múltipla
 - [x] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
 - [ ] Subtotal por página (a transportar), marca d'água, cabeçalho só na 1ª página
+- [x] Relatórios grandes: PDF em blocos com memória limitada
 - [ ] Extensão Quarkus (native image)
 - [x] Fonte com Unicode completo (`relato-fonts`)

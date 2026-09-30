@@ -37,6 +37,7 @@ public class RelatoAutoConfiguration {
                 .datePattern(props.getDatePattern())
                 .dateTimePattern(props.getDateTimePattern())
                 .resources(ResourceResolver.standard(cl, baseDir))
+                .chunkRows(props.getChunkRows())
                 .build();
     }
 }

@@ -13,6 +13,8 @@ public class RelatoProperties {
     private String zone = "America/Sao_Paulo";
     private String datePattern = "dd/MM/yyyy";
     private String dateTimePattern = "dd/MM/yyyy HH:mm";
+    /** Tabelas com mais linhas que isso geram o PDF em blocos (memória limitada); 0 desliga. */
+    private int chunkRows = 4000;
 
     public String getTemplates() { return templates; }
     public void setTemplates(String templates) { this.templates = templates; }
@@ -26,4 +28,6 @@ public class RelatoProperties {
     public void setDatePattern(String datePattern) { this.datePattern = datePattern; }
     public String getDateTimePattern() { return dateTimePattern; }
     public void setDateTimePattern(String dateTimePattern) { this.dateTimePattern = dateTimePattern; }
+    public int getChunkRows() { return chunkRows; }
+    public void setChunkRows(int chunkRows) { this.chunkRows = chunkRows; }
 }
