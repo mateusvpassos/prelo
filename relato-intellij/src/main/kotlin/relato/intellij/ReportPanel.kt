@@ -22,7 +22,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -46,7 +45,6 @@ import java.awt.RenderingHints
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.image.BufferedImage
-import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import javax.swing.JPanel
 
@@ -141,17 +139,7 @@ class ReportPanel(private val project: Project, private val file: VirtualFile) :
         alarm.addRequest({ render() }, delay)
     }
 
-    private fun currentText(f: VirtualFile): String = runReadAction {
-        FileDocumentManager.getInstance().getCachedDocument(f)?.text ?: VfsUtil.loadText(f)
-    }
-
-    private fun input(): PreviewEngine.Input {
-        val sample = runReadAction { ReportFiles.sampleOf(file) }?.let { currentText(it) }
-        val roots = runReadAction {
-            ProjectRootManager.getInstance(project).contentSourceRoots.map { File(it.path) }
-        }
-        return PreviewEngine.Input(currentText(file), sample, file.parent?.let { File(it.path) }, roots)
-    }
+    private fun input(): PreviewEngine.Input = PreviewInputs.of(project, file)
 
     private fun render() {
         val mySeq = seq.incrementAndGet()

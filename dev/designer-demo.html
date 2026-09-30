@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Relato Designer (dev)</title>
+<link rel="stylesheet" href="../relato-intellij/src/main/resources/designer/designer.css">
+<script>
+  // host simulado: guarda as mensagens enviadas e responde ao 'ready' com o exemplo de vendas
+  window.sent = [];
+  window.relatoMockHost = async (msg) => {
+    window.sent.push(msg);
+    if (msg.type === 'ready') {
+      const file = new URLSearchParams(location.search).get('file') || 'vendas';
+      const [json, schema] = await Promise.all([
+        fetch('../examples/' + file + '.report.json').then((r) => r.text()),
+        fetch('../relato-core/src/main/resources/relato.schema.json').then((r) => r.text()),
+      ]);
+      const clean = json.replace(/^\s*\/\/.*$/gm, '');
+      window.relato.receive({ type: 'load', json: clean, schema, fileName: file + '.report.json' });
+    }
+    if (msg.type === 'preview') window.relato.receive({ type: 'preview', pages: [], total: 0, notes: ['(host simulado: sem PDF)'] });
+  };
+</script>
+</head>
+<body>
+<div id="app">
+  <div id="toolbar">
+    <span class="title" id="title">Relato</span>
+    <button class="tbtn" id="undo">↶ Desfazer</button>
+    <button class="tbtn" id="redo">↷ Refazer</button>
+    <span class="spacer"></span>
+    <span class="status" id="status"></span>
+    <button class="tbtn" id="zoomOut" title="Diminuir">−</button>
+    <button class="tbtn" id="zoomFit" title="Ajustar à largura"><span id="zoomLabel">100%</span></button>
+    <button class="tbtn" id="zoomIn" title="Aumentar">+</button>
+    <button class="tbtn" id="reportProps">⚙ Relatório</button>
+    <button class="tbtn" id="togglePreview">▶ Preview PDF</button>
+  </div>
+  <div id="palette"></div>
+  <div id="center">
+    <div id="canvas"></div>
+    <div id="preview"></div>
+    <div id="banner"><div class="box" id="bannerText"></div></div>
+  </div>
+  <div id="props"></div>
+</div>
+<script src="../relato-intellij/src/main/resources/designer/designer.js"></script>
+</body>
+</html>

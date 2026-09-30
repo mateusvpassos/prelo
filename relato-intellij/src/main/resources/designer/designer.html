@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Relato Designer</title>
+<link rel="stylesheet" href="designer.css">
+</head>
+<body>
+<div id="app">
+  <div id="toolbar">
+    <span class="title" id="title">Relato</span>
+    <button class="tbtn" id="undo" title="Desfazer (Ctrl+Z)">↶ Desfazer</button>
+    <button class="tbtn" id="redo" title="Refazer (Ctrl+Y)">↷ Refazer</button>
+    <span class="spacer"></span>
+    <span class="status" id="status"></span>
+    <button class="tbtn" id="zoomOut" title="Diminuir">−</button>
+    <button class="tbtn" id="zoomFit" title="Ajustar à largura"><span id="zoomLabel">100%</span></button>
+    <button class="tbtn" id="zoomIn" title="Aumentar">+</button>
+    <button class="tbtn" id="reportProps" title="Página, parâmetros e campos do relatório">⚙ Relatório</button>
+    <button class="tbtn" id="togglePreview" title="Ver o PDF gerado com os dados de exemplo">▶ Preview PDF</button>
+  </div>
+  <div id="palette"></div>
+  <div id="center">
+    <div id="canvas"></div>
+    <div id="preview"></div>
+    <div id="banner"><div class="box" id="bannerText"></div></div>
+  </div>
+  <div id="props"></div>
+</div>
+<script src="designer.js"></script>
+</body>
+</html>

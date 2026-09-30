@@ -5,6 +5,7 @@
     <description><![CDATA[
     Editor e preview de relatórios <b>relato</b> (<code>*.report.json</code>) — alternativa leve ao JasperReports.
     <ul>
+      <li>Designer visual: arraste blocos e campos para montar o layout; propriedades editadas num painel.</li>
       <li>Editor dividido: JSON à esquerda, páginas do PDF à direita, atualizando enquanto você digita.</li>
       <li>Autocomplete e validação do JSON (schema embutido).</li>
       <li>Dados de exemplo gerados a partir de <code>fields</code>, ou lidos de <code>nome.sample.json</code>.</li>
@@ -14,9 +15,12 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends optional="true" config-file="relato-json.xml">com.intellij.modules.json</depends>
+    <!-- 2026.2+: JCEF é um plugin à parte; nas versões antigas faz parte da plataforma -->
+    <depends optional="true" config-file="relato-jcef.xml">com.intellij.modules.jcef</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <fileEditorProvider implementation="relato.intellij.ReportEditorProvider"/>
+        <fileEditorProvider implementation="relato.intellij.designer.DesignerEditorProvider"/>
         <notificationGroup id="Relato" displayType="BALLOON"/>
     </extensions>
 

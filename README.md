@@ -140,15 +140,34 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 
 ## Plugin IntelliJ
 
+**Designer visual** (aba *Designer* embaixo do editor):
+- Paleta com blocos, prontos (título, `Página X de Y`, data de emissão), **campos dos dados** e parâmetros.
+- Arraste para as faixas *cabeçalho da página*, *conteúdo* e *rodapé*, ou para dentro de colunas, caixas e listas.
+- Campo solto sobre uma tabela vira coluna (com formato e total pelo tipo); sobre uma ficha, vira item. Um campo `list` solto numa área vazia vira uma tabela com os subcampos.
+- Clique para selecionar e edite no painel de propriedades (gerado do schema). Colunas, grupos, itens, estilo (negrito, tamanho, cores...) e condição de visibilidade ficam ali. Duplo clique edita o texto direto.
+- Atalhos: Del remove, Ctrl+D duplica, Alt+↑/↓ move, Ctrl+Z/Ctrl+Y desfaz/refaz.
+- Tudo grava no `.report.json` (desfazer da IDE vale). Editar o texto atualiza o designer. **▶ Preview PDF** mostra o PDF real com os dados de exemplo.
+- Comentários `//` do JSON se perdem quando o designer regrava o arquivo.
+
+**Editor de texto** (aba *Relato*):
 - Qualquer `*.report.json` abre com o preview ao lado, que atualiza enquanto você digita, sem salvar.
 - Autocomplete, documentação e validação vêm do schema embutido ([`relato.schema.json`](relato-core/src/main/resources/relato.schema.json)).
 - Dados do preview: `nome.sample.json` ao lado do template (`{"params": {...}, "data": [...]}`). Se ele não existir, os dados são inventados a partir de `fields`, com valor plausível pelo nome: `cnpj`, `cidade`, `valor`...
 - Na barra: zoom, **Dados de exemplo** (cria/abre o sample) e exportar PDF/XLSX/HTML.
 - `New → Relatório Relato` cria um template inicial.
 
+## Desenvolvimento do designer
+
+O designer é HTML/JS puro (`relato-intellij/src/main/resources/designer/`). Para mexer nele fora da IDE, sirva a raiz do repo e abra `dev/designer-demo.html` (host simulado):
+
+```bash
+python -m http.server 8765
+```
+Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pedidos`).
+
 ## Roadmap
 
-- [ ] Designer visual (arrastar blocos) no plugin
+- [x] Designer visual (arrastar blocos) no plugin
 - [ ] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
 - [ ] Subtotal por página (a transportar), marca d'água, cabeçalho só na 1ª página
 - [ ] Extensão Quarkus (native image)
