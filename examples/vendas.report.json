@@ -1,0 +1,64 @@
+{
+  "title": "Relatório de Vendas",
+  "page": { "size": "A4", "orientation": "portrait", "margin": "22mm 12mm 18mm 12mm" },
+  "parameters": [
+    { "name": "periodo", "type": "string", "sample": "09/2026" },
+    { "name": "empresa", "type": "string", "default": "Minha Empresa Ltda" }
+  ],
+  "fields": [
+    { "name": "regiao", "type": "string" },
+    { "name": "vendedor", "type": "string" },
+    { "name": "cliente", "type": "object", "fields": [
+      { "name": "nome", "type": "string" },
+      { "name": "cnpj", "type": "string" }
+    ] },
+    { "name": "data", "type": "date" },
+    { "name": "quantidade", "type": "integer" },
+    { "name": "valor", "type": "money" }
+  ],
+  "pageHeader": [
+    { "type": "row", "columns": [
+      { "width": "70%", "content": [
+        { "type": "text", "value": "${empresa}", "style": { "bold": true, "size": 12 } },
+        { "type": "text", "value": "Relatório de Vendas · período ${periodo}", "style": { "color": "#555" } }
+      ] },
+      { "width": "30%", "align": "right", "content": [
+        { "type": "text", "value": "Emitido em ${now()}", "style": { "size": 8, "color": "#777" } }
+      ] }
+    ] },
+    { "type": "line", "color": "#333", "thickness": "1pt" }
+  ],
+  "body": [
+    { "type": "text", "value": "Resumo", "style": { "bold": true, "size": 11, "marginBottom": 4 } },
+    { "type": "fields", "columns": 3, "items": [
+      { "label": "Vendas", "value": "${count()}" },
+      { "label": "Total", "value": "${sum(valor)}", "format": "currency" },
+      { "label": "Ticket médio", "value": "${avg(valor)}", "format": "currency" }
+    ] },
+    { "type": "spacer", "height": "3mm" },
+    { "type": "table",
+      "sortBy": "regiao, -valor",
+      "zebra": true,
+      "groups": [
+        { "by": "regiao", "header": "Região: ${regiao} (${count()} vendas)", "footer": true, "footerLabel": "Subtotal ${regiao}" }
+      ],
+      "columns": [
+        { "header": "#", "value": "${index}", "width": "6%", "align": "center" },
+        { "header": "Data", "value": "${data}", "format": "date", "width": "12%" },
+        { "header": "Cliente", "value": "${cliente.nome}", "width": "30%" },
+        { "header": "CNPJ", "value": "${cliente.cnpj}", "format": "cnpj", "width": "20%" },
+        { "header": "Qtd", "value": "${quantidade}", "width": "10%", "total": "sum" },
+        { "header": "Valor", "value": "${valor}", "format": "currency", "width": "22%", "total": "sum" }
+      ],
+      "totalLabel": "Total geral",
+      "emptyText": "Nenhuma venda no período."
+    }
+  ],
+  "pageFooter": [
+    { "type": "line" },
+    { "type": "row", "columns": [
+      { "content": [ { "type": "text", "value": "relato · ${empresa}", "style": { "size": 7, "color": "#888" } } ] },
+      { "align": "right", "content": [ { "type": "text", "value": "Página ${page} de ${pages}", "style": { "size": 8 } } ] }
+    ] }
+  ]
+}

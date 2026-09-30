@@ -1,0 +1,270 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/mateusvpassos/relato/relato.schema.json",
+  "title": "Relato report",
+  "description": "Definição de relatório do relato (*.report.json). Textos aceitam expressões ${...}.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "name": { "type": "string", "description": "Identificador (opcional; o carregador usa o nome do arquivo)." },
+    "title": { "type": "string", "description": "Título do documento (metadado do PDF, nome da planilha)." },
+    "locale": { "type": "string", "examples": ["pt-BR", "en-US"] },
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "size": { "type": "string", "default": "A4", "examples": ["A4", "A3", "A5", "Letter", "Legal", "210mm 297mm"] },
+        "orientation": { "enum": ["portrait", "landscape"], "default": "portrait" },
+        "margin": { "type": "string", "default": "20mm 15mm", "description": "Margens CSS. Cabeçalho/rodapé de página ficam dentro das margens superior/inferior." }
+      }
+    },
+    "style": { "$ref": "#/definitions/style", "description": "Estilo base do documento." },
+    "css": { "type": "string", "description": "CSS adicional (avançado)." },
+    "parameters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": { "$ref": "#/definitions/valueType" },
+          "label": { "type": "string" },
+          "default": { "description": "Valor quando o parâmetro não é informado." },
+          "sample": { "description": "Valor usado no preview." }
+        }
+      }
+    },
+    "fields": { "type": "array", "items": { "$ref": "#/definitions/field" }, "description": "Campos dos dados (documentação e dados de exemplo no preview)." },
+    "pageHeader": { "$ref": "#/definitions/elements", "description": "Repetido no topo de todas as páginas." },
+    "body": { "$ref": "#/definitions/elements" },
+    "pageFooter": { "$ref": "#/definitions/elements", "description": "Repetido no rodapé de todas as páginas. Use ${page} e ${pages}." }
+  },
+  "definitions": {
+    "valueType": { "enum": ["string", "text", "integer", "number", "decimal", "money", "date", "datetime", "boolean", "list", "object"] },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "$ref": "#/definitions/valueType" },
+        "label": { "type": "string" },
+        "fields": { "type": "array", "items": { "$ref": "#/definitions/field" } },
+        "sample": { "description": "Valor fixo nos dados de exemplo." }
+      }
+    },
+    "style": {
+      "description": "Texto CSS ou objeto. Atalhos: bold, italic, underline, uppercase, size (pt), align, valign, font, color, background, border. Outras chaves viram CSS (camelCase aceito; números = pt).",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "bold": { "type": "boolean" },
+            "italic": { "type": "boolean" },
+            "underline": { "type": "boolean" },
+            "uppercase": { "type": "boolean" },
+            "size": { "type": ["number", "string"] },
+            "align": { "enum": ["left", "center", "right", "justify"] },
+            "valign": { "enum": ["top", "middle", "bottom"] },
+            "font": { "type": "string" },
+            "color": { "type": "string" },
+            "background": { "type": "string" },
+            "border": { "type": ["boolean", "string"] },
+            "padding": { "type": ["number", "string"] },
+            "margin": { "type": ["number", "string"] },
+            "marginTop": { "type": ["number", "string"] },
+            "marginBottom": { "type": ["number", "string"] }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "format": {
+      "type": "string",
+      "description": "currency, number, integer, decimal, percent, date, datetime, time, cpf, cnpj, cpfCnpj, cep, upper, lower, 'Sim|Não' ou padrão (#,##0.00 / dd/MM/yyyy).",
+      "examples": ["currency", "decimal", "integer", "percent", "date", "datetime", "cpf", "cnpj", "Sim|Não", "#,##0.000", "MMMM/yyyy"]
+    },
+    "visible": { "type": "string", "description": "Expressão; o bloco só aparece se verdadeira. Ex.: total > 0" },
+    "elements": { "type": "array", "items": { "$ref": "#/definitions/element" } },
+    "element": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["text", "html", "image", "row", "box", "table", "list", "fields", "line", "spacer", "pageBreak"] }
+      },
+      "allOf": [
+        { "if": { "properties": { "type": { "const": "text" } } }, "then": { "$ref": "#/definitions/text" } },
+        { "if": { "properties": { "type": { "const": "html" } } }, "then": { "$ref": "#/definitions/html" } },
+        { "if": { "properties": { "type": { "const": "image" } } }, "then": { "$ref": "#/definitions/image" } },
+        { "if": { "properties": { "type": { "const": "row" } } }, "then": { "$ref": "#/definitions/row" } },
+        { "if": { "properties": { "type": { "const": "box" } } }, "then": { "$ref": "#/definitions/box" } },
+        { "if": { "properties": { "type": { "const": "table" } } }, "then": { "$ref": "#/definitions/table" } },
+        { "if": { "properties": { "type": { "const": "list" } } }, "then": { "$ref": "#/definitions/list" } },
+        { "if": { "properties": { "type": { "const": "fields" } } }, "then": { "$ref": "#/definitions/fields" } },
+        { "if": { "properties": { "type": { "const": "line" } } }, "then": { "$ref": "#/definitions/line" } },
+        { "if": { "properties": { "type": { "const": "spacer" } } }, "then": { "$ref": "#/definitions/spacer" } },
+        { "if": { "properties": { "type": { "const": "pageBreak" } } }, "then": { "$ref": "#/definitions/pageBreak" } }
+      ]
+    },
+    "text": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "value": { "type": "string", "description": "Texto com ${expressões}." },
+        "format": { "$ref": "#/definitions/format" },
+        "align": { "enum": ["left", "center", "right", "justify"] }
+      }
+    },
+    "html": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "value": { "type": "string", "description": "XHTML; valores de ${} são escapados." }
+      }
+    },
+    "image": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "src": { "type": "string", "description": "classpath:img/logo.png, caminho, URL, data URI ou ${expressão byte[]}" },
+        "width": { "type": "string", "examples": ["30mm", "50%"] },
+        "height": { "type": "string" },
+        "align": { "enum": ["left", "center", "right"] }
+      }
+    },
+    "row": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "gap": { "type": "string", "default": "4mm" },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "width": { "type": "string", "examples": ["50%", "40mm"] },
+              "align": { "enum": ["left", "center", "right"] },
+              "style": { "$ref": "#/definitions/style" },
+              "content": { "$ref": "#/definitions/elements" }
+            }
+          }
+        }
+      }
+    },
+    "box": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "keepTogether": { "type": "boolean", "description": "Evita quebrar o bloco entre páginas." },
+        "content": { "$ref": "#/definitions/elements" }
+      }
+    },
+    "table": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "source": { "type": "string", "default": "rows", "description": "Coleção. Padrão: os dados do relatório." },
+        "sortBy": { "type": "string", "description": "Expressões separadas por vírgula; '-' = decrescente. Ex.: regiao, -valor" },
+        "showHeader": { "type": "boolean", "default": true },
+        "zebra": { "type": "boolean" },
+        "grid": { "type": "boolean" },
+        "totalLabel": { "type": "string", "default": "Total" },
+        "emptyText": { "type": "string" },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "header": { "type": "string" },
+              "value": { "type": "string", "description": "Ex.: ${cliente.nome}. Variável index = nº da linha." },
+              "width": { "type": "string" },
+              "align": { "enum": ["left", "center", "right"] },
+              "format": { "$ref": "#/definitions/format" },
+              "total": { "type": "string", "description": "sum, avg, min, max, count, ${expressão} ou texto.", "examples": ["sum", "avg", "count", "max", "min"] },
+              "style": { "$ref": "#/definitions/style" },
+              "headerStyle": { "$ref": "#/definitions/style" }
+            }
+          }
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["by"],
+            "properties": {
+              "by": { "type": "string", "description": "Expressão da chave. Ex.: regiao" },
+              "header": { "type": "string", "description": "Ex.: Região: ${regiao} (${count()} itens)" },
+              "footer": { "type": "boolean", "description": "Mostra subtotais das colunas com total." },
+              "footerLabel": { "type": "string", "default": "Subtotal" },
+              "pageBreak": { "type": "boolean", "description": "Cada grupo (1º nível) em nova página." },
+              "style": { "$ref": "#/definitions/style" }
+            }
+          }
+        }
+      }
+    },
+    "list": {
+      "additionalProperties": false,
+      "required": ["source"],
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "source": { "type": "string", "description": "Coleção. Ex.: rows, itens, pedido.itens" },
+        "as": { "type": "string", "default": "item" },
+        "sortBy": { "type": "string" },
+        "header": { "$ref": "#/definitions/elements" },
+        "content": { "$ref": "#/definitions/elements", "description": "Repetido por item. index = posição." },
+        "footer": { "$ref": "#/definitions/elements", "description": "Agregações (count(), sum(x)) valem para os itens." },
+        "separator": { "type": "boolean" },
+        "pageBreakBetween": { "type": "boolean" },
+        "keepTogether": { "type": "boolean" },
+        "emptyText": { "type": "string" }
+      }
+    },
+    "fields": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "columns": { "type": "integer", "default": 2, "description": "Pares rótulo/valor por linha." },
+        "labelWidth": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "label": { "type": "string" },
+              "value": { "type": "string" },
+              "format": { "$ref": "#/definitions/format" },
+              "span": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "line": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "color": { "type": "string", "default": "#999" },
+        "thickness": { "type": "string", "default": "0.5pt" }
+      }
+    },
+    "spacer": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" },
+        "height": { "type": "string", "default": "5mm" }
+      }
+    },
+    "pageBreak": {
+      "additionalProperties": false,
+      "properties": { "type": {}, "style": { "$ref": "#/definitions/style" }, "visible": { "$ref": "#/definitions/visible" } }
+    }
+  }
+}

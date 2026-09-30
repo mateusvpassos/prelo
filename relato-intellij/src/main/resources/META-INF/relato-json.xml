@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="JavaScript.JsonSchema">
+        <ProviderFactory implementation="relato.intellij.RelatoSchemaProviderFactory"/>
+    </extensions>
+</idea-plugin>

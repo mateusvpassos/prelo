@@ -1,0 +1,29 @@
+<idea-plugin>
+    <id>io.github.mateusvpassos.relato</id>
+    <name>Relato Reports</name>
+    <vendor>mvinicius</vendor>
+    <description><![CDATA[
+    Editor e preview de relatórios <b>relato</b> (<code>*.report.json</code>) — alternativa leve ao JasperReports.
+    <ul>
+      <li>Editor dividido: JSON à esquerda, páginas do PDF à direita, atualizando enquanto você digita.</li>
+      <li>Autocomplete e validação do JSON (schema embutido).</li>
+      <li>Dados de exemplo gerados a partir de <code>fields</code>, ou lidos de <code>nome.sample.json</code>.</li>
+      <li>Exporta PDF, HTML e XLSX do preview.</li>
+    </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends optional="true" config-file="relato-json.xml">com.intellij.modules.json</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileEditorProvider implementation="relato.intellij.ReportEditorProvider"/>
+        <notificationGroup id="Relato" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <action id="Relato.NewReport" class="relato.intellij.NewReportAction" text="Relatório Relato"
+                description="Cria um arquivo .report.json" icon="AllIcons.FileTypes.Json">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewFile"/>
+        </action>
+    </actions>
+</idea-plugin>
