@@ -15,6 +15,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.JBColor
 import com.intellij.util.Alarm
+import com.intellij.openapi.ide.CopyPasteManager
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import relato.intellij.PreviewEngine
 import relato.intellij.PreviewInputs
 import relato.intellij.fields.ClassFields
@@ -76,6 +79,16 @@ class DesignerController(
                 previewAlarm.cancelAllRequests()
                 previewAlarm.addRequest({ renderPreview() }, 150)
             }
+            "copy" -> {
+                val text = msg.path("text").asText()
+                ApplicationManager.getApplication().invokeLater {
+                    CopyPasteManager.getInstance().setContents(StringSelection(text))
+                }
+            }
+            "paste" -> ApplicationManager.getApplication().invokeLater({
+                val text = CopyPasteManager.getInstance().getContents<String>(DataFlavor.stringFlavor)
+                post(mapOf("type" to "clipboard", "text" to text))
+            }, { project.isDisposed })
             "findClasses" -> {
                 val q = msg.path("query").asText()
                 ApplicationManager.getApplication().executeOnPooledThread {

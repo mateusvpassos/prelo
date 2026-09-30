@@ -170,6 +170,10 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 - Campo solto sobre uma tabela vira coluna (com formato e total pelo tipo); sobre uma ficha, vira item. Um campo `list` solto numa área vazia vira uma tabela com os subcampos.
 - Clique para selecionar e edite no painel de propriedades (gerado do schema). Colunas, grupos, itens, estilo (negrito, tamanho, cores...) e condição de visibilidade ficam ali. Duplo clique edita o texto direto.
 - Atalhos: Del remove, Ctrl+D duplica, Alt+↑/↓ move, Ctrl+Z/Ctrl+Y desfaz/refaz.
+- **Largura das colunas**: arraste a borda entre dois cabeçalhos da tabela, ou entre duas colunas de um bloco *Colunas*.
+- **Seleção múltipla**: Ctrl/Shift+clique (Ctrl+A seleciona os irmãos). Dá para remover, duplicar, copiar e aplicar estilo a todos.
+- **Copiar/colar**: Ctrl+C/Ctrl+X/Ctrl+V ou o botão ⎘ do bloco e 📋 Colar. Usa o clipboard da IDE, então funciona entre relatórios e até colando JSON de fora.
+- **◧ Lado a lado**: layout e PDF juntos, com o PDF atualizando a cada mudança.
 - Tudo grava no `.report.json` (desfazer da IDE vale). Editar o texto atualiza o designer. **▶ Preview PDF** mostra o PDF real com os dados de exemplo.
 - Comentários `//` do JSON se perdem quando o designer regrava o arquivo.
 
@@ -197,6 +201,7 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 ## Roadmap
 
 - [x] Designer visual (arrastar blocos) no plugin
+- [x] Designer: redimensionar colunas, copiar/colar, preview lado a lado, seleção múltipla
 - [x] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
 - [ ] Subtotal por página (a transportar), marca d'água, cabeçalho só na 1ª página
 - [ ] Extensão Quarkus (native image)

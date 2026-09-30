@@ -107,4 +107,13 @@ class DesignerControllerTest : BasePlatformTestCase() {
         assertTrue(ids.toString(), ids.indexOf("relato-report-editor") < ids.indexOf("relato-designer"))
         assertTrue(DesignerHtml.page().contains("window.relato = {"))
     }
+
+    fun testCopyAndPasteGoThroughIdeClipboard() {
+        open()
+        controller.onMessage(DesignerController.MAPPER.writeValueAsString(mapOf("type" to "copy", "text" to "{\"type\":\"line\"}")))
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+        controller.onMessage("""{"type":"paste"}""")
+        val clip = waitFor("clipboard").single()
+        assertEquals("{\"type\":\"line\"}", clip["text"].asText())
+    }
 }

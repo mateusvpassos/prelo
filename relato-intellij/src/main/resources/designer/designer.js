@@ -49,7 +49,7 @@
 
   const S = {
     model: null, schema: null, sel: null, colSel: null, fileName: '', history: [], future: [], mergeKey: null, mergeAt: 0,
-    drag: null, preview: false, zoom: 'fit', problems: [], open: new Set(), hasHost: false, invalid: null,
+    drag: null, preview: false, zoom: 'fit', problems: [], multi: [], clip: null, open: new Set(), hasHost: false, invalid: null,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -79,6 +79,7 @@
         case 'preview': return onPreview(msg);
         case 'theme': document.body.classList.toggle('dark', !!msg.dark); return;
         case 'classes': return onClasses(msg);
+        case 'clipboard': return pasteText(msg.text);
         case 'fields': return onFields(msg);
         case 'problems':
           S.problems = msg.items || [];
@@ -302,6 +303,82 @@
     });
   }
 
+  function removeMany(paths) {
+    if (!paths.length) return;
+    commit(() => {
+      for (const p of [...paths].sort(cmpPath).reverse()) {
+        const arr = getAt(p.slice(0, -1));
+        if (Array.isArray(arr)) arr.splice(p[p.length - 1], 1);
+      }
+      S.sel = null;
+      S.multi = [];
+      S.colSel = null;
+    });
+  }
+
+  function duplicateMany(paths) {
+    if (!paths.length) return;
+    commit(() => {
+      const copies = [];
+      for (const p of [...paths].sort(cmpPath).reverse()) {
+        const arr = getAt(p.slice(0, -1));
+        const c = clone(getAt(p));
+        arr.splice(p[p.length - 1] + 1, 0, c);
+        copies.push(c);
+      }
+      S.multi = copies.map(findPath).filter(Boolean);
+      S.sel = S.multi[S.multi.length - 1] || null;
+    });
+  }
+
+  // ---------- copiar / colar (clipboard da IDE: funciona entre relatórios)
+
+  function copyPaths(paths) {
+    if (!paths.length) return;
+    const els = [...paths].sort(cmpPath).map((p) => clone(getAt(p)));
+    const text = JSON.stringify(els.length === 1 ? els[0] : els, null, 2);
+    S.clip = text;
+    host.send({ type: 'copy', text });
+    $('status').textContent = els.length + ' bloco(s) copiado(s)';
+  }
+
+  function cutPaths(paths) {
+    copyPaths(paths);
+    removeMany(paths);
+  }
+
+  function requestPaste() {
+    if (S.hasHost) host.send({ type: 'paste' });
+    else pasteText(S.clip);
+  }
+
+  /** Cola blocos (JSON de um elemento ou lista) depois do selecionado, ou no fim do conteúdo. */
+  function pasteText(text) {
+    if (!text) return;
+    let v;
+    try {
+      v = JSON.parse(text);
+    } catch (e) {
+      // texto simples vira um bloco de texto
+      v = { type: 'text', value: String(text).slice(0, 2000) };
+    }
+    const els = (Array.isArray(v) ? v : [v]).filter(isElement);
+    if (!els.length) { $('status').textContent = 'nada para colar'; return; }
+    let container = ['body'];
+    let index = (S.model.body || []).length;
+    if (S.sel) {
+      container = S.sel.slice(0, -1);
+      index = S.sel[S.sel.length - 1] + 1;
+    }
+    commit(() => {
+      const arr = ensureArray(container);
+      arr.splice(index, 0, ...els);
+      S.multi = els.map(findPath).filter(Boolean);
+      S.sel = S.multi[S.multi.length - 1] || null;
+    });
+    $('status').textContent = els.length + ' bloco(s) colado(s)';
+  }
+
   function removeAt(path) {
     commit(() => {
       getAt(path.slice(0, -1)).splice(path[path.length - 1], 1);
@@ -518,7 +595,7 @@
     page.style.zoom = '';
     let z = S.zoom;
     if (z === 'fit') {
-      const avail = $('center').clientWidth - 48;
+      const avail = (S.preview === 'split' ? $('canvas').clientWidth : $('center').clientWidth) - 48;
       z = Math.max(0.35, Math.min(1.25, avail / page.offsetWidth));
     }
     page.style.zoom = String(z);
@@ -541,13 +618,13 @@
 
   function block(el, path) {
     if (!isElement(el)) return '';
-    const sel = S.sel && same(S.sel, path);
+    const sel = isSelected(path);
     const t = TYPES[el.type];
     const cls = 'blk' + (sel ? ' sel' : '') + (el.visible ? ' hidden-cond' : '');
     let h = `<div class="${cls}" data-path="${esc(JSON.stringify(path))}" data-type="${esc(el.type)}">`;
     h += `<div class="tag">${esc(t ? t.label : el.type)}</div>`;
     h += '<div class="acts"><button data-a="up" title="Subir">↑</button><button data-a="down" title="Descer">↓</button>'
-      + '<button data-a="dup" title="Duplicar (Ctrl+D)">⧉</button><button data-a="del" title="Remover (Del)">✕</button></div>';
+      + '<button data-a="copy" title="Copiar (Ctrl+C)">⎘</button><button data-a="dup" title="Duplicar (Ctrl+D)">⧉</button><button data-a="del" title="Remover (Del)">✕</button></div>';
     h += body(el, path);
     return h + '</div>';
   }
@@ -678,8 +755,36 @@
     return node ? JSON.parse(node.getAttribute('data-path')) : null;
   }
 
-  function select(path, col = null) {
-    S.sel = path;
+  function isSelected(path) {
+    if (S.sel && same(S.sel, path)) return true;
+    return S.multi.some((m) => same(m, path));
+  }
+
+  /** Caminhos selecionados (sem os que estão dentro de outro selecionado). */
+  function selection() {
+    const all = S.multi.length ? S.multi : S.sel ? [S.sel] : [];
+    return all.filter((p) => !all.some((q) => q !== p && q.length < p.length && same(p.slice(0, q.length), q)));
+  }
+
+  function cmpPath(a, b) {
+    for (let i = 0; i < Math.min(a.length, b.length); i++) {
+      if (a[i] === b[i]) continue;
+      if (typeof a[i] === 'number' && typeof b[i] === 'number') return a[i] - b[i];
+      return String(a[i]) < String(b[i]) ? -1 : 1;
+    }
+    return a.length - b.length;
+  }
+
+  function select(path, col = null, add = false) {
+    if (add && path) {
+      const i = S.multi.findIndex((m) => same(m, path));
+      if (!S.multi.length && S.sel) S.multi = [S.sel];
+      if (i >= 0) S.multi.splice(i, 1); else S.multi.push(path);
+      S.sel = S.multi.length ? S.multi[S.multi.length - 1] : null;
+    } else {
+      S.multi = path ? [path] : [];
+      S.sel = path;
+    }
     S.colSel = col;
     if (col != null && path) S.open.add(openKey(path, 'columns', col));
     renderCanvas();
@@ -699,7 +804,11 @@
     if (act && blk) {
       e.stopPropagation();
       const p = pathOf(blk);
-      ({ up: () => shift(p, -1), down: () => shift(p, 1), dup: () => duplicate(p), del: () => removeAt(p) })[act.dataset.a]();
+      ({ up: () => shift(p, -1), down: () => shift(p, 1), dup: () => duplicate(p), del: () => removeAt(p), copy: () => copyPaths([p]) })[act.dataset.a]();
+      return;
+    }
+    if (blk && (e.ctrlKey || e.metaKey || e.shiftKey)) {
+      select(pathOf(blk), null, true);
       return;
     }
     if (blk) {
@@ -768,8 +877,70 @@
     return null;
   }
 
+  // ---------- redimensionar colunas (tabela e bloco de colunas)
+
+  let resizing = null;
+
+  function resizeHandle(e) {
+    const th = e.target.closest?.('table.r-table th');
+    if (th && th.nextElementSibling) {
+      const r = th.getBoundingClientRect();
+      if (e.clientX > r.right - 6) return { kind: 'table', blk: th.closest('.blk'), i: Number(th.dataset.col), cells: [...th.parentElement.children] };
+    }
+    const col = e.target.closest?.('.r-row > .col');
+    if (col && col.nextElementSibling) {
+      const r = col.getBoundingClientRect();
+      if (e.clientX > r.right - 6) {
+        const cells = [...col.parentElement.children];
+        return { kind: 'row', blk: col.closest('.blk'), i: cells.indexOf(col), cells };
+      }
+    }
+    return null;
+  }
+
+  function startResize(h, e) {
+    const widths = h.cells.map((c) => c.getBoundingClientRect().width);
+    resizing = { ...h, x: e.clientX, widths, start: widths.slice() };
+    document.body.classList.add('resizing');
+    e.preventDefault();
+  }
+
+  function moveResize(e) {
+    const r = resizing;
+    const dx = e.clientX - r.x;
+    const min = 12;
+    const a = Math.max(min, r.start[r.i] + dx);
+    const b = Math.max(min, r.start[r.i] + r.start[r.i + 1] - a);
+    r.widths[r.i] = r.start[r.i] + r.start[r.i + 1] - b;
+    r.widths[r.i + 1] = b;
+    const total = r.widths.reduce((x, y) => x + y, 0);
+    r.cells.forEach((c, k) => {
+      const pct = (r.widths[k] / total * 100).toFixed(1) + '%';
+      if (r.kind === 'table') c.style.width = pct;
+      else c.style.flex = '0 0 ' + pct;
+    });
+    $('status').textContent = r.cells.map((_, k) => Math.round(r.widths[k] / total * 100) + '%').join(' · ');
+  }
+
+  function endResize() {
+    const r = resizing;
+    resizing = null;
+    document.body.classList.remove('resizing');
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 0);
+    const total = r.widths.reduce((x, y) => x + y, 0);
+    const path = pathOf(r.blk);
+    commit(() => {
+      const el = getAt(path);
+      el.columns.forEach((c, k) => { if (k < r.widths.length) c.width = Math.round(r.widths[k] / total * 1000) / 10 + '%'; });
+      S.sel = path;
+    });
+  }
+
   function onMouseDown(e) {
     if (e.button !== 0 || S.invalid) return;
+    const rh = resizeHandle(e);
+    if (rh) return startResize(rh, e);
     const p = payloadFor(e.target);
     if (!p) return;
     pending = { p, x: e.clientX, y: e.clientY };
@@ -777,6 +948,11 @@
   }
 
   function onMouseMove(e) {
+    if (resizing) return moveResize(e);
+    if (!pending && !S.drag) {
+      document.body.classList.toggle('can-resize', !!resizeHandle(e));
+      return;
+    }
     if (pending && !S.drag) {
       if (Math.abs(e.clientX - pending.x) + Math.abs(e.clientY - pending.y) < 5) return;
       S.drag = pending.p;
@@ -813,6 +989,7 @@
   }
 
   function onMouseUp(e) {
+    if (resizing) return endResize();
     pending = null;
     if (!S.drag) return;
     const p = S.drag;
@@ -919,6 +1096,26 @@
     const bodyEl = document.createElement('div');
     bodyEl.className = 'pbody';
     const el = S.sel ? getAt(S.sel) : null;
+    const many = selection();
+    if (many.length > 1) {
+      head.innerHTML = `<span class="pt">${many.length} blocos selecionados</span>`
+        + '<button data-a="copy" title="Copiar">⎘</button><button data-a="dup" title="Duplicar">⧉</button><button data-a="del" class="danger" title="Remover">✕</button>';
+      head.addEventListener('click', (e) => {
+        const a = e.target.closest('button')?.dataset.a;
+        if (a) ({ copy: () => copyPaths(many), dup: () => duplicateMany(many), del: () => removeMany(many) })[a]();
+      });
+      box.append(head, bodyEl);
+      bodyEl.innerHTML = '<div class="hint">Ctrl/Shift+clique adiciona ou tira blocos da seleção. O estilo abaixo vale para todos.</div>';
+      const els = many.map(getAt).filter(isElement);
+      const first = els[0];
+      const proxy = new Proxy({}, {
+        get: (_, k) => (k === 'style' ? first.style : undefined),
+        set: (_, k, v) => { for (const x of els) x[k] = typeof v === 'object' ? clone(v) : v; return true; },
+        deleteProperty: (_, k) => { for (const x of els) delete x[k]; return true; },
+      });
+      styleEditor(bodyEl, 'Estilo (todos)', proxy, 'style', 'multi-style');
+      return;
+    }
     if (!isElement(el)) {
       head.innerHTML = '<span class="pt">⚙ Relatório</span>';
       box.append(head, bodyEl);
@@ -1380,12 +1577,15 @@
     $('status').textContent = msg.total + ' página(s) no PDF';
   }
 
-  function togglePreview() {
-    S.preview = !S.preview;
-    document.body.classList.toggle('previewing', S.preview);
-    $('togglePreview').classList.toggle('on', S.preview);
+  /** mode: 'full' (só o PDF) ou 'split' (layout e PDF lado a lado, atualizando sozinho). */
+  function togglePreview(mode = 'full') {
+    S.preview = S.preview === mode ? false : mode;
+    document.body.classList.toggle('previewing', S.preview === 'full');
+    document.body.classList.toggle('splitting', S.preview === 'split');
+    $('togglePreview').classList.toggle('on', S.preview === 'full');
+    $('splitPreview').classList.toggle('on', S.preview === 'split');
     if (S.preview) requestPreview();
-    else renderCanvas();
+    renderCanvas();
   }
 
   // ---------------------------------------------------------------- geral
@@ -1409,9 +1609,20 @@
     if (ctrl && !editing && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
     if (ctrl && !editing && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); redo(); return; }
     if (e.key === 'Escape' && S.drag) { endDrag(); return; }
+    if (ctrl && !editing && (e.key === 'v' || e.key === 'V')) { e.preventDefault(); requestPaste(); return; }
     if (editing || !S.sel) return;
-    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeAt(S.sel); }
-    else if (ctrl && (e.key === 'd' || e.key === 'D')) { e.preventDefault(); duplicate(S.sel); }
+    const sel = selection();
+    if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); removeMany(sel); }
+    else if (ctrl && (e.key === 'd' || e.key === 'D')) { e.preventDefault(); duplicateMany(sel); }
+    else if (ctrl && (e.key === 'c' || e.key === 'C')) { e.preventDefault(); copyPaths(sel); }
+    else if (ctrl && (e.key === 'x' || e.key === 'X')) { e.preventDefault(); cutPaths(sel); }
+    else if (ctrl && (e.key === 'a' || e.key === 'A')) {
+      e.preventDefault();
+      const arr = getAt(S.sel.slice(0, -1));
+      S.multi = arr.map((_, i) => S.sel.slice(0, -1).concat(i));
+      renderCanvas();
+      renderProps();
+    }
     else if (e.altKey && e.key === 'ArrowUp') { e.preventDefault(); shift(S.sel, -1); }
     else if (e.altKey && e.key === 'ArrowDown') { e.preventDefault(); shift(S.sel, 1); }
     else if (e.key === 'Escape') select(null);
@@ -1428,7 +1639,9 @@
     document.addEventListener('keydown', onKey);
     $('undo').addEventListener('click', undo);
     $('redo').addEventListener('click', redo);
-    $('togglePreview').addEventListener('click', togglePreview);
+    $('togglePreview').addEventListener('click', () => togglePreview('full'));
+    $('splitPreview').addEventListener('click', () => togglePreview('split'));
+    $('pasteBtn').addEventListener('click', requestPaste);
     $('reportProps').addEventListener('click', () => select(null));
     $('zoomOut').addEventListener('click', () => zoomBy(1 / 1.15));
     $('zoomIn').addEventListener('click', () => zoomBy(1.15));
