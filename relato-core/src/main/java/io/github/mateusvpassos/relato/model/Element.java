@@ -21,6 +21,8 @@ import java.util.List;
     @JsonSubTypes.Type(value = Element.Line.class, name = "line"),
     @JsonSubTypes.Type(value = Element.Spacer.class, name = "spacer"),
     @JsonSubTypes.Type(value = Element.PageBreak.class, name = "pageBreak"),
+    @JsonSubTypes.Type(value = Element.Barcode.class, name = "barcode"),
+    @JsonSubTypes.Type(value = Element.Include.class, name = "include"),
 })
 public sealed interface Element {
     Object style();
@@ -69,9 +71,11 @@ public sealed interface Element {
      * @param zebra      linhas alternadas
      * @param grid       bordas em todas as células
      * @param emptyText  mostrado quando não há linhas
+     * @param pageTotals subtotal no pé de cada página ("a transportar") e transporte no topo da seguinte
      */
     record Table(String source, String sortBy, List<TableColumn> columns, List<Group> groups, Boolean showHeader,
-                 Boolean zebra, Boolean grid, String totalLabel, String emptyText, Object style, String visible) implements Element {
+                 Boolean zebra, Boolean grid, String totalLabel, String emptyText, Boolean pageTotals, String carryLabel,
+                 String broughtLabel, Object style, String visible) implements Element {
         public Table {
             columns = columns == null ? List.of() : columns;
             groups = groups == null ? List.of() : groups;
@@ -122,4 +126,22 @@ public sealed interface Element {
     record Spacer(String height, Object style, String visible) implements Element {}
 
     record PageBreak(Object style, String visible) implements Element {}
+
+    /**
+     * Código de barras ou QR code.
+     *
+     * @param format  qr (padrão), code128, code39, ean13, ean8, upca, itf, datamatrix, pdf417
+     * @param showText texto legível abaixo (barras lineares)
+     */
+    record Barcode(String value, String format, String width, String height, Boolean showText, String align,
+                   Object style, String visible) implements Element {}
+
+    /**
+     * Inclui o corpo de outro template (sub-relatório).
+     *
+     * @param template nome do outro template (como em {@code relato.report("nome")})
+     * @param data     dados do sub-relatório; padrão: o item/dados correntes
+     * @param params   parâmetros extras (valores com expressões); os do relatório pai são herdados
+     */
+    record Include(String template, String data, java.util.Map<String, String> params, Object style, String visible) implements Element {}
 }

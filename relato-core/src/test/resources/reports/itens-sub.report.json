@@ -1,0 +1,7 @@
+{
+  "body": [
+    { "type": "text", "value": "${titulo} · ${empresa}", "style": { "bold": true } },
+    { "type": "table", "columns": [ { "header": "Item", "value": "${desc}" }, { "header": "Valor", "value": "${valor}", "total": "sum" } ] },
+    { "type": "text", "value": "Soma: ${sum(valor)}" }
+  ]
+}

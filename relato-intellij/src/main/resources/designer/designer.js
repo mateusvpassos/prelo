@@ -7,6 +7,7 @@
   'use strict';
 
   const BANDS = [
+    { key: 'firstPageHeader', label: 'Cabeçalho da 1ª página (substitui o de baixo nela)', cls: 'hdr first', optional: true },
     { key: 'pageHeader', label: 'Cabeçalho da página (todas as páginas)', cls: 'hdr' },
     { key: 'body', label: 'Conteúdo', cls: 'body' },
     { key: 'pageFooter', label: 'Rodapé da página (todas as páginas)', cls: 'ftr' },
@@ -24,6 +25,8 @@
     spacer: { label: 'Espaço', icon: '↕', make: () => ({ type: 'spacer', height: '5mm' }) },
     pageBreak: { label: 'Quebra de página', icon: '⤓', make: () => ({ type: 'pageBreak' }) },
     html: { label: 'HTML', icon: '<>', make: () => ({ type: 'html', value: '<b>HTML</b>' }) },
+    barcode: { label: 'Código de barras / QR', icon: '▤', make: () => ({ type: 'barcode', value: '${codigo}', format: 'qr', width: '25mm' }) },
+    include: { label: 'Sub-relatório', icon: '⎘', make: () => ({ type: 'include', template: 'outro-relatorio' }) },
   };
 
   const SNIPPETS = [
@@ -495,7 +498,10 @@
     if (!S.model) return;
     const pb = pageBox();
     let h = `<div class="page" style="width:${pb.w}mm;padding:0 ${esc(pb.right)} 0 ${esc(pb.left)};${esc(styleCss(S.model.style))}">`;
+    const firstEmpty = !(S.model.firstPageHeader || []).length;
+    if (firstEmpty && !S.showFirst) h += '<div class="band-add"><a href="#" data-add-first="1">+ cabeçalho diferente na 1ª página</a></div>';
     for (const b of BANDS) {
+      if (b.optional && firstEmpty && !S.showFirst) continue;
       h += `<div class="band ${b.cls}"><span class="bname">${esc(b.label)}</span>${zone([b.key], S.model[b.key] || [], 'Arraste blocos aqui')}</div>`;
     }
     h += '</div>';
@@ -611,6 +617,17 @@
       }
       case 'table':
         return table(el, path, css);
+      case 'barcode': {
+        const two = !el.format || el.format === 'qr' || el.format === 'datamatrix';
+        const w = el.width || (two ? '25mm' : '60mm');
+        const hh = el.height || (two ? w : '15mm');
+        const wrap = el.align ? `text-align:${esc(el.align)}` : '';
+        return `<div style="${wrap}"><span class="r-barcode ${two ? 'qr' : ''}" style="width:${esc(w)};height:${esc(hh)};${css}">${esc((el.format || 'qr').toUpperCase())}</span>`
+          + (el.showText && !two ? `<div style="font-family:monospace;font-size:8pt;${wrap}">${chips(el.value || '')}</div>` : '')
+          + `<div class="r-barcode-v">${chips(el.value || '')}</div></div>`;
+      }
+      case 'include':
+        return `<div class="r-include" style="${css}">⎘ sub-relatório <b>${esc(el.template || '?')}</b>${el.data ? ' · dados: <span class="chip">' + esc(el.data) + '</span>' : ''}</div>`;
       default:
         return `<div class="r-html">tipo desconhecido: ${esc(el.type)}</div>`;
     }
@@ -647,6 +664,7 @@
       return r + '</tr>';
     };
     const hasTotals = cols.some((c) => c.total);
+    if (el.pageTotals) h += totals(el.carryLabel || 'A transportar', 'sub pt') + totals(el.broughtLabel || 'Transporte', 'sub pt');
     if (hasTotals) {
       [...(el.groups || [])].reverse().forEach((g) => { if (g.footer) h += totals(g.footerLabel || 'Subtotal', 'sub'); });
       h += totals(el.totalLabel || 'Total', 'tot');
@@ -670,6 +688,12 @@
 
   function onCanvasClick(e) {
     if (suppressClick) return;
+    if (e.target.closest('[data-add-first]')) {
+      e.preventDefault();
+      S.showFirst = true;
+      renderCanvas();
+      return;
+    }
     const act = e.target.closest('.acts button');
     const blk = e.target.closest('.blk');
     if (act && blk) {

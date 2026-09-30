@@ -54,6 +54,24 @@ public final class Scope {
         throw new ExprException("'" + name + "' não encontrado" + hint());
     }
 
+    /** Como {@link #lookup}, mas devolve null em vez de erro. */
+    public Object lookupOrNull(String name) {
+        for (Scope s = this; s != null; s = s.parent) {
+            if (s.row != null && Values.hasProperty(s.row, name)) return Values.property(s.row, name);
+            if (s.vars != null && s.vars.containsKey(name)) return s.vars.get(name);
+        }
+        return null;
+    }
+
+    /** Linha corrente mais próxima (item da tabela/lista ou o objeto de dados); null se não há. */
+    public Object currentRow() {
+        for (Scope s = this; s != null; s = s.parent) {
+            if (s.row != null) return s.row;
+            if (s.vars != null && s.vars.containsKey("rows") && s.vars.containsKey("data")) return s.vars.get("data");
+        }
+        return null;
+    }
+
     /** Coleção das agregações mais próxima (grupo, tabela, lista ou o conjunto de dados). */
     public List<?> aggregateItems() {
         for (Scope s = this; s != null; s = s.parent) {

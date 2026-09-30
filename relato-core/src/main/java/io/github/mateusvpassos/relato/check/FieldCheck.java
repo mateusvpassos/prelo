@@ -29,8 +29,8 @@ public final class FieldCheck {
             .enable(JsonParser.Feature.ALLOW_TRAILING_COMMA);
 
     private static final Set<String> AGGREGATES = Set.of("sum", "avg", "min", "max", "count", "first", "last", "join");
-    private static final Set<String> BARE_PROPS = Set.of("visible", "source", "sortBy", "by");
-    private static final String[] BANDS = {"pageHeader", "body", "pageFooter"};
+    private static final Set<String> BARE_PROPS = Set.of("visible", "source", "sortBy", "by", "data");
+    private static final String[] BANDS = {"firstPageHeader", "pageHeader", "body", "pageFooter"};
 
     /**
      * @param path   caminho JSON até a propriedade de texto, ex.: {@code ["body", 3, "columns", 2, "value"]}
@@ -253,6 +253,12 @@ public final class FieldCheck {
         void run() {
             JsonNode title = root.get("title");
             if (title != null && title.isTextual()) template(title.asText(), List.of("title"), rootCtx);
+            JsonNode wm = root.get("watermark");
+            if (wm != null && wm.isObject()) {
+                template(wm, "text", List.of("watermark"), rootCtx);
+                template(wm, "src", List.of("watermark"), rootCtx);
+                bare(wm, "visible", List.of("watermark"), rootCtx);
+            }
             for (String band : BANDS) elements(root.get(band), List.of(band), rootCtx);
         }
 
@@ -277,6 +283,12 @@ public final class FieldCheck {
             switch (el.path("type").asText("")) {
                 case "text", "html" -> template(el, "value", path, ctx);
                 case "image" -> template(el, "src", path, ctx);
+                case "barcode" -> template(el, "value", path, ctx);
+                case "include" -> {
+                    bare(el, "data", path, ctx);
+                    JsonNode ps = el.get("params");
+                    if (ps != null && ps.isObject()) ps.fieldNames().forEachRemaining(k -> template(ps, k, append(path, "params"), ctx));
+                }
                 case "fields" -> {
                     JsonNode items = el.get("items");
                     if (items != null && items.isArray()) {

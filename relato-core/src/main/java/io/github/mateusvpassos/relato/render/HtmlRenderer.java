@@ -17,11 +17,23 @@ final class HtmlRenderer {
     private void document(Node.Document doc) {
         sb.append("<!DOCTYPE html>\n<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"").append(escape(doc.lang())).append("\">\n<head>\n");
         sb.append("<meta charset=\"UTF-8\"/>\n<title>").append(escape(doc.title())).append("</title>\n<style>\n");
-        sb.append(pageCss(doc.page(), !doc.pageHeader().isEmpty(), !doc.pageFooter().isEmpty()));
+        sb.append(pageCss(doc.page(), !doc.pageHeader().isEmpty(), !doc.firstPageHeader().isEmpty(), !doc.pageFooter().isEmpty()));
         sb.append(BASE_CSS);
         if (!doc.baseCss().isEmpty()) sb.append("body{").append(doc.baseCss()).append("}\n");
         if (doc.extraCss() != null) sb.append(doc.extraCss()).append('\n');
         sb.append("</style>\n</head>\n<body>\n");
+        if (doc.watermark() != null) {
+            Node.Watermark w = doc.watermark();
+            sb.append("<div class=\"rl-watermark\"><div class=\"rl-watermark-in\"").append(style(w.css())).append('>');
+            if (w.imageSrc() != null) sb.append("<img src=\"").append(escape(w.imageSrc())).append("\" alt=\"\" style=\"max-width:100%\"/>");
+            else sb.append(escape(w.text()));
+            sb.append("</div></div>\n");
+        }
+        if (!doc.firstPageHeader().isEmpty()) {
+            sb.append("<div class=\"rl-first-header\">");
+            nodes(doc.firstPageHeader());
+            sb.append("</div>\n");
+        }
         if (!doc.pageHeader().isEmpty()) {
             sb.append("<div class=\"rl-page-header\">");
             nodes(doc.pageHeader());
@@ -36,7 +48,7 @@ final class HtmlRenderer {
         sb.append("</body>\n</html>\n");
     }
 
-    private static String pageCss(Page p, boolean header, boolean footer) {
+    private static String pageCss(Page p, boolean header, boolean firstHeader, boolean footer) {
         String size = switch (p.size().toLowerCase()) {
             case "a3" -> "A3";
             case "a4" -> "A4";
@@ -52,6 +64,7 @@ final class HtmlRenderer {
         if (header) c.append("  @top-center { content: element(rlHeader); vertical-align: bottom; width: 100%; padding-bottom: 3mm; }\n");
         if (footer) c.append("  @bottom-center { content: element(rlFooter); vertical-align: top; width: 100%; padding-top: 3mm; }\n");
         c.append("}\n");
+        if (firstHeader) c.append("@page :first {\n  @top-center { content: element(rlFirstHeader); vertical-align: bottom; width: 100%; padding-bottom: 3mm; }\n}\n");
         return c.toString();
     }
 
@@ -129,9 +142,12 @@ final class HtmlRenderer {
         if (t.rows().isEmpty()) {
             sb.append("<tr><td class=\"rl-empty\" colspan=\"").append(n).append("\">").append(escape(t.emptyText())).append("&#160;</td></tr>\n");
         }
+        int rowIdx = -1;
         for (Node.TRow row : t.rows()) {
+            rowIdx++;
             if (row instanceof Node.DataRow d) {
-                sb.append("<tr").append(t.zebra() && dataIdx % 2 == 1 ? " class=\"rl-odd\"" : "").append('>');
+                sb.append("<tr").append(t.zebra() && dataIdx % 2 == 1 ? " class=\"rl-odd\"" : "")
+                        .append(rowId(t, rowIdx)).append('>');
                 for (int i = 0; i < cols.size(); i++) {
                     Node.ColSpec c = cols.get(i);
                     Node.Cell cell = i < d.cells().size() ? d.cells().get(i) : null;
@@ -142,12 +158,28 @@ final class HtmlRenderer {
                 firstData = false;
                 dataIdx++;
             } else if (row instanceof Node.GroupHeader g) {
-                sb.append("<tr class=\"rl-gh rl-gh-").append(g.level()).append('"')
+                sb.append("<tr class=\"rl-gh rl-gh-").append(g.level()).append('"').append(rowId(t, rowIdx))
                         .append(g.pageBreak() ? " style=\"page-break-before:always\"" : "").append("><td colspan=\"").append(n).append('"')
                         .append(style(g.css())).append('>').append(escape(g.text())).append("</td></tr>\n");
                 dataIdx = 0;
+            } else if (row instanceof Node.PageTotalRow pr) {
+                sb.append("<tr class=\"rl-pt\" id=\"rl-pt-").append(pr.carry() ? "c" : "b").append(pr.id()).append('"')
+                        .append(pr.carry() ? " style=\"page-break-after:always\"" : "").append('>');
+                int first = 0;
+                while (first < cols.size() && pr.cells().get(first) == null) first++;
+                int i = 0;
+                if (first > 0) {
+                    sb.append("<td").append(first > 1 ? " colspan=\"" + first + "\"" : "").append('>').append(escape(pr.label())).append("</td>");
+                    i = first;
+                }
+                for (; i < cols.size(); i++) {
+                    Node.Cell cell = pr.cells().get(i);
+                    sb.append("<td").append(style(align(aligns[i], cell == null ? null : cell.raw()))).append('>')
+                            .append(cell == null ? "" : escape(cell.text())).append("</td>");
+                }
+                sb.append("</tr>\n");
             } else if (row instanceof Node.TotalRow tr) {
-                sb.append("<tr class=\"").append(tr.level() < 0 ? "rl-total" : "rl-sub rl-sub-" + tr.level()).append("\">");
+                sb.append("<tr class=\"").append(tr.level() < 0 ? "rl-total" : "rl-sub rl-sub-" + tr.level()).append('"').append(rowId(t, rowIdx)).append('>');
                 // rótulo ocupa as colunas antes do primeiro total
                 int firstTotal = 0;
                 while (firstTotal < cols.size() && tr.cells().get(firstTotal) == null) firstTotal++;
@@ -221,6 +253,11 @@ final class HtmlRenderer {
         return out;
     }
 
+    /** Id das linhas de tabelas com totais por página, para medir a paginação. */
+    private static String rowId(Node.Table t, int idx) {
+        return t.pageTotals() != null ? " id=\"rl-r-" + idx + "\"" : "";
+    }
+
     private static String width(Node.ColSpec c) {
         return c.width() == null ? "" : "width:" + c.width();
     }
@@ -256,6 +293,10 @@ final class HtmlRenderer {
     private static final String BASE_CSS = """
             body { font-family: sans-serif; font-size: 9pt; color: #222; margin: 0; line-height: 1.25; }
             .rl-page-header { position: running(rlHeader); }
+            .rl-first-header { position: running(rlFirstHeader); }
+            .rl-watermark { position: fixed; left: 0; right: 0; top: 35%; text-align: center; z-index: -1; }
+            .rl-watermark-in { display: inline-block; font-weight: bold; white-space: nowrap; }
+            tr.rl-pt td { font-weight: bold; font-style: italic; background: #f7f8fa; border-top: 0.5pt solid #a9b1bc; }
             .rl-page-footer { position: running(rlFooter); }
             .rl-page::after { content: counter(page); }
             .rl-pages::after { content: counter(pages); }

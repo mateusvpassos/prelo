@@ -6,8 +6,16 @@ import java.util.List;
 /** Relatório já avaliado (expressões resolvidas), pronto para virar HTML/PDF ou XLSX. */
 sealed interface Node {
 
-    record Document(String title, String lang, Page page, String baseCss, String extraCss,
-                    List<Node> pageHeader, List<Node> body, List<Node> pageFooter) {}
+    record Document(String title, String lang, Page page, String baseCss, String extraCss, Watermark watermark,
+                    List<Node> firstPageHeader, List<Node> pageHeader, List<Node> body, List<Node> pageFooter) {}
+
+    /** Marca d'água: texto ou imagem (data URI). */
+    record Watermark(String text, String imageSrc, String color, double size, double angle, double opacity, String width) {
+        String css() {
+            return "color:" + color + ";font-size:" + size + "pt;opacity:" + opacity + ";transform:rotate(" + angle + "deg)"
+                    + (width != null ? ";width:" + width : "");
+        }
+    }
 
     /** {@code segments}: String ou {@link io.github.mateusvpassos.relato.expr.PageRef}. {@code raw}: valor cru quando o texto é uma só expressão. */
     record Text(List<Object> segments, Object raw, String format, String css) implements Node {
@@ -29,7 +37,14 @@ sealed interface Node {
     record Box(List<Node> content, boolean keepTogether, String css) implements Node {}
 
     record Table(List<ColSpec> columns, List<TRow> rows, boolean showHeader, boolean zebra, boolean grid,
-                 String emptyText, String css) implements Node {}
+                 String emptyText, String css, PageTotals pageTotals) implements Node {
+        Table withRows(List<TRow> newRows) {
+            return new Table(columns, newRows, showHeader, zebra, grid, emptyText, css, pageTotals);
+        }
+    }
+
+    /** Totais por página: colunas somadas ({@code sum[i]}) e rótulos. */
+    record PageTotals(String carryLabel, String broughtLabel, boolean[] sum, String[] format) {}
 
     record ColSpec(String header, String width, String align, String css, String headerCss) {}
 
@@ -44,6 +59,9 @@ sealed interface Node {
 
     /** Subtotal (level >= 0) ou total geral (level = -1). {@code label} ocupa a 1ª coluna sem total. */
     record TotalRow(int level, String label, List<Cell> cells, String css) implements TRow {}
+
+    /** "A transportar" no pé da página ({@code carry}) ou "Transporte" no topo da seguinte. {@code id}: nº da quebra. */
+    record PageTotalRow(int id, boolean carry, String label, List<Cell> cells) implements TRow {}
 
     record ListBlock(List<Node> header, List<List<Node>> items, List<Node> footer, boolean separator,
                      boolean pageBreakBetween, boolean keepTogether, String emptyText, String css) implements Node {}

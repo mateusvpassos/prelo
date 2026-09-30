@@ -32,7 +32,7 @@ public final class Relato {
         this.cache = b.cache;
         Formatter formatter = new Formatter(b.locale, b.zone, b.datePattern, b.dateTimePattern);
         ResourceResolver res = b.resources != null ? b.resources : ResourceResolver.standard(b.classLoader, null);
-        this.renderer = new ReportRenderer(formatter, res, b.fonts);
+        this.renderer = new ReportRenderer(formatter, res, b.fonts, this::template);
     }
 
     /** Padrões: templates em {@code classpath:reports/}, pt-BR, America/Sao_Paulo. */

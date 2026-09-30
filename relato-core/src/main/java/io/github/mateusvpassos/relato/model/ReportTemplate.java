@@ -15,6 +15,8 @@ import java.util.List;
  * @param parameters  parâmetros esperados (documentação, valores padrão e dados de exemplo)
  * @param dataClass   classe dos dados (ex.: {@code com.empresa.VendaDTO}); o plugin gera {@code fields} a partir dela
  * @param fields      campos dos dados (documentação e dados de exemplo no preview)
+ * @param watermark   marca d'água em todas as páginas
+ * @param firstPageHeader cabeçalho só da 1ª página (substitui pageHeader nela)
  * @param pageHeader  repetido no topo de todas as páginas
  * @param body        conteúdo
  * @param pageFooter  repetido no rodapé de todas as páginas
@@ -30,6 +32,8 @@ public record ReportTemplate(
         List<ParamDef> parameters,
         String dataClass,
         List<FieldDef> fields,
+        Watermark watermark,
+        List<Element> firstPageHeader,
         List<Element> pageHeader,
         List<Element> body,
         List<Element> pageFooter) {
@@ -38,12 +42,13 @@ public record ReportTemplate(
         page = page == null ? Page.DEFAULT : page;
         parameters = parameters == null ? List.of() : parameters;
         fields = fields == null ? List.of() : fields;
+        firstPageHeader = firstPageHeader == null ? List.of() : firstPageHeader;
         pageHeader = pageHeader == null ? List.of() : pageHeader;
         body = body == null ? List.of() : body;
         pageFooter = pageFooter == null ? List.of() : pageFooter;
     }
 
     public ReportTemplate withName(String newName) {
-        return new ReportTemplate(schema, newName, title, locale, page, style, css, parameters, dataClass, fields, pageHeader, body, pageFooter);
+        return new ReportTemplate(schema, newName, title, locale, page, style, css, parameters, dataClass, fields, watermark, firstPageHeader, pageHeader, body, pageFooter);
     }
 }

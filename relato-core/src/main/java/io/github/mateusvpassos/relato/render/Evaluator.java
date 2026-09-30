@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /** Avalia o template com os dados, produzindo a árvore {@link Node}. */
 public final class Evaluator {
@@ -29,10 +30,18 @@ public final class Evaluator {
 
     private final Formatter formatter;
     private final ResourceResolver resources;
+    private final Function<String, ReportTemplate> includes;
+    private int includeDepth;
 
     public Evaluator(Formatter formatter, ResourceResolver resources) {
+        this(formatter, resources, null);
+    }
+
+    /** @param includes resolve os templates usados em blocos {@code include} (pode ser nulo) */
+    public Evaluator(Formatter formatter, ResourceResolver resources, Function<String, ReportTemplate> includes) {
         this.formatter = formatter;
         this.resources = resources;
+        this.includes = includes;
     }
 
     Node.Document evaluate(ReportTemplate t, Object data, Map<String, ?> params) {
@@ -43,6 +52,8 @@ public final class Evaluator {
                 t.page(),
                 Css.of(t.style()),
                 t.css(),
+                watermark(t, scope),
+                elements(t.firstPageHeader(), scope, "firstPageHeader"),
                 elements(t.pageHeader(), scope, "pageHeader"),
                 elements(t.body(), scope, "body"),
                 elements(t.pageFooter(), scope, "pageFooter"));
@@ -123,7 +134,68 @@ public final class Evaluator {
         }
         if (e instanceof Element.Spacer sp) return new Node.Spacer(sp.height() == null ? "5mm" : sp.height(), css);
         if (e instanceof Element.PageBreak) return new Node.PageBreak();
+        if (e instanceof Element.Barcode b) return barcode(b, css, scope);
+        if (e instanceof Element.Include inc) return include(inc, css, scope, path);
         throw new ReportException("elemento não suportado: " + e);
+    }
+
+    // ---------- marca d'água, código de barras, sub-relatório
+
+    private Node.Watermark watermark(ReportTemplate t, Scope scope) {
+        var w = t.watermark();
+        if (w == null) return null;
+        if (w.visible() != null && !w.visible().isBlank() && !Values.truthy(expr(w.visible(), scope))) return null;
+        String img = null;
+        if (w.src() != null && !w.src().isBlank()) {
+            Object v = Interpolated.of(w.src()).value(scope);
+            img = v instanceof byte[] b ? dataUri(b) : v == null ? null : resolveSrc(v.toString().trim());
+        }
+        String text = w.text() == null ? "" : text(w.text(), null, scope);
+        if (img == null && text.isBlank()) return null;
+        return new Node.Watermark(text, img, w.color() == null ? "#808080" : w.color(),
+                w.size() == null ? 72 : w.size().doubleValue(), w.angle() == null ? -35 : w.angle().doubleValue(),
+                w.opacity() == null ? 0.18 : w.opacity().doubleValue(), w.width());
+    }
+
+    private Node barcode(Element.Barcode b, String css, Scope scope) {
+        String value = b.value() == null ? "" : text(b.value(), null, scope);
+        if (value.isBlank()) return null;
+        String fmt = b.format() == null ? "qr" : b.format();
+        boolean twoD = Barcodes.isTwoDimensional(fmt);
+        String w = b.width() != null ? b.width() : twoD ? "25mm" : "60mm";
+        String h = b.height() != null ? b.height() : twoD ? w : "15mm";
+        byte[] png = Barcodes.png(value, fmt);
+        String imgCss = Css.join("width:" + w, "height:" + h, css);
+        Node.Image img = new Node.Image(dataUri(png), imgCss, align(b.align()));
+        if (twoD || !Boolean.TRUE.equals(b.showText())) return img;
+        List<Node> parts = new ArrayList<>();
+        parts.add(img);
+        parts.add(new Node.Text(List.of(value), value, null, Css.join(align(b.align()), "font-family:monospace;font-size:8pt")));
+        return new Node.Box(parts, true, "");
+    }
+
+    private Node include(Element.Include inc, String css, Scope scope, String path) {
+        if (includes == null) throw new ReportException("include indisponível: nenhum carregador de templates configurado");
+        if (inc.template() == null || inc.template().isBlank()) throw new ReportException("include sem 'template'");
+        if (includeDepth >= 8) throw new ReportException("include aninhado demais (ciclo?) em '" + inc.template() + "'");
+        ReportTemplate sub = includes.apply(inc.template());
+        Object data = inc.data() == null || inc.data().isBlank() ? scope.currentRow() : expr(inc.data(), scope);
+        Map<String, Object> params = new LinkedHashMap<>();
+        Object parent = scope.lookupOrNull("params");
+        if (parent instanceof Map<?, ?> pm) pm.forEach((k, v) -> params.put(String.valueOf(k), v));
+        if (inc.params() != null) inc.params().forEach((k, v) -> params.put(k, v == null ? null : Interpolated.of(v).value(scope)));
+        includeDepth++;
+        try {
+            Scope subScope = rootScope(sub, data, params);
+            return new Node.Box(elements(sub.body(), subScope, path + " > " + inc.template() + ".body"), false, css);
+        } finally {
+            includeDepth--;
+        }
+    }
+
+    private String resolveSrc(String s) {
+        if (s.startsWith("data:") || s.startsWith("http://") || s.startsWith("https://")) return s;
+        return dataUri(ResourceResolver.readOrThrow(resources, s));
     }
 
     // ---------- texto
@@ -192,6 +264,10 @@ public final class Evaluator {
         return new Node.Image(src, Css.join(st.toString(), css), align(img.align()));
     }
 
+    Formatter formatter() {
+        return formatter;
+    }
+
     private static String dataUri(byte[] b) {
         String mime = "application/octet-stream";
         if (b.length > 4 && (b[0] & 0xFF) == 0x89 && b[1] == 'P' && b[2] == 'N' && b[3] == 'G') mime = "image/png";
@@ -220,8 +296,19 @@ public final class Evaluator {
             rows.add(new Node.TotalRow(-1, t.totalLabel() == null ? "Total" : text(t.totalLabel(), null, tableScope),
                     totals(t, tableScope), ""));
         }
+        Node.PageTotals pt = null;
+        if (Boolean.TRUE.equals(t.pageTotals())) {
+            boolean[] sum = new boolean[t.columns().size()];
+            String[] fmt = new String[t.columns().size()];
+            for (int i = 0; i < sum.length; i++) {
+                sum[i] = "sum".equals(t.columns().get(i).total());
+                fmt[i] = t.columns().get(i).format();
+            }
+            pt = new Node.PageTotals(t.carryLabel() == null ? "A transportar" : t.carryLabel(),
+                    t.broughtLabel() == null ? "Transporte" : t.broughtLabel(), sum, fmt);
+        }
         return new Node.Table(specs, rows, !Boolean.FALSE.equals(t.showHeader()), Boolean.TRUE.equals(t.zebra()),
-                Boolean.TRUE.equals(t.grid()), t.emptyText() == null ? "" : text(t.emptyText(), null, scope), css);
+                Boolean.TRUE.equals(t.grid()), t.emptyText() == null ? "" : text(t.emptyText(), null, scope), css, pt);
     }
 
     private void emitGroup(Element.Table t, int level, List<?> items, Scope scope, List<Node.TRow> out, int[] index,

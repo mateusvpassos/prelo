@@ -155,3 +155,12 @@ body.dark .pwarn { background: #3a3120; color: #f0cf8a; border-color: #7a6030; }
 .btn { border: 1px solid var(--line); background: var(--panel2); border-radius: 5px; padding: 3px 10px; cursor: pointer; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.primary:hover { filter: brightness(1.1); }
+.band.first { background: #f5f9ff; }
+.band-add { padding: 4px 8px; font: 11px -apple-system, "Segoe UI", sans-serif; }
+.band-add a { color: #6b7a90; text-decoration: none; }
+.band-add a:hover { color: var(--accent); }
+.r-barcode { display: inline-flex; align-items: center; justify-content: center; background: repeating-linear-gradient(90deg, #333 0 2px, #fff 2px 4px, #333 4px 5px, #fff 5px 8px); color: #fff; font: bold 9px -apple-system, sans-serif; text-shadow: 0 0 3px #000; }
+.r-barcode.qr { background: repeating-conic-gradient(#333 0 25%, #fff 0 50%) 0 0 / 6px 6px; }
+.r-barcode-v { font-size: 8pt; color: #888; }
+.r-include { border: 1px dashed #9db4e0; background: #f4f8ff; color: #3d5a8c; padding: 6px 8px; font: 11px -apple-system, "Segoe UI", sans-serif; }
+table.r-table tr.pt td { font-style: italic; color: #6b7280; }

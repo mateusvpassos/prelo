@@ -6,4 +6,4 @@ pluginManagement {
 }
 
 rootProject.name = "relato"
-include("relato-core", "relato-spring-boot-starter", "relato-intellij")
+include("relato-core", "relato-fonts", "relato-spring-boot-starter", "relato-intellij")

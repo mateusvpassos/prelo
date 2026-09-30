@@ -11,6 +11,7 @@ Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON decla
 | Módulo | O que é |
 |---|---|
 | `relato-core` | engine (Java 17+, sem framework) |
+| `relato-fonts` | opcional: DejaVu Sans (Unicode completo) como fonte padrão |
 | `relato-spring-boot-starter` | bean `Relato` + `ReportResponses` para controllers |
 | `relato-intellij` | plugin: editor dividido JSON + preview, autocomplete/validação, exportar |
 
@@ -126,6 +127,27 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 
 `style`: texto CSS ou objeto. Atalhos: `bold italic underline uppercase size align valign font color background border`. Outras chaves viram CSS (`marginTop: 4` → `margin-top:4pt`).
 
+### Recursos de página
+
+```json
+{
+  "watermark": { "text": "CANCELADO", "visible": "status == 'C'" },
+  "firstPageHeader": [ { "type": "text", "value": "Capa: só na 1ª página" } ],
+  "body": [
+    { "type": "table", "pageTotals": true, "columns": [ { "header": "Valor", "value": "${valor}", "total": "sum" } ] },
+    { "type": "barcode", "value": "${chaveNota}", "format": "qr", "width": "30mm" },
+    { "type": "barcode", "value": "${codigo}", "format": "code128", "showText": true },
+    { "type": "include", "template": "itens-pedido", "data": "itens", "params": { "titulo": "Itens do ${numero}" } }
+  ]
+}
+```
+- **`watermark`**: texto ou imagem em todas as páginas, transparente e por baixo do conteúdo.
+- **`firstPageHeader`**: cabeçalho próprio da 1ª página; nas outras vale `pageHeader`.
+- **`pageTotals`** na tabela: "A transportar" no pé de cada página e "Transporte" no topo da seguinte, com o acumulado das colunas `total: "sum"`. Os rótulos mudam em `carryLabel` e `broughtLabel`.
+- **`barcode`**: `qr`, `code128`, `code39`, `ean13`, `ean8`, `upca`, `itf`, `datamatrix`, `pdf417`.
+- **`include`**: corpo de outro template (sub-relatório reaproveitável), com os dados e parâmetros que você passar.
+- **Unicode completo** (✓ ★ → Ω €, grego, cirílico): adicione `io.github.mateusvpassos:relato-fonts:0.1.0-SNAPSHOT`. Com o jar no classpath, DejaVu Sans vira a fonte padrão.
+
 ### Expressões
 
 - **Textos** (`value`, `header`, `label`...) usam `${...}`: `"Total: ${sum(valor)}"`.
@@ -178,4 +200,4 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 - [x] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
 - [ ] Subtotal por página (a transportar), marca d'água, cabeçalho só na 1ª página
 - [ ] Extensão Quarkus (native image)
-- [ ] Fonte padrão embutida com Unicode completo (hoje: Helvetica/Latin-1; use `Relato.builder().font(...)` para outras)
+- [x] Fonte com Unicode completo (`relato-fonts`)

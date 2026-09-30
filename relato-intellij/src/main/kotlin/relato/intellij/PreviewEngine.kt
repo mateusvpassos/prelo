@@ -5,6 +5,7 @@ import io.github.mateusvpassos.relato.Relato
 import io.github.mateusvpassos.relato.ReportException
 import io.github.mateusvpassos.relato.ResourceResolver
 import io.github.mateusvpassos.relato.SampleData
+import io.github.mateusvpassos.relato.TemplateLoader
 import io.github.mateusvpassos.relato.Templates
 import io.github.mateusvpassos.relato.model.ReportTemplate
 import org.apache.pdfbox.Loader
@@ -86,7 +87,10 @@ object PreviewEngine {
                 standard.read(location)
             }
         }
-        return Relato.builder().resources(resolver).cache(false).build()
+        val b = Relato.builder().resources(resolver).cache(false)
+        // sub-relatórios: templates vizinhos na mesma pasta
+        input.baseDir?.let { b.templates(TemplateLoader.directory(it.toPath())) }
+        return b.build()
     }
 
     fun describe(e: Throwable): String {
