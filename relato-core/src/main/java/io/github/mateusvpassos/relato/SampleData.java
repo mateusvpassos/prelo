@@ -84,7 +84,8 @@ public final class SampleData {
         Map<String, Object> p = new LinkedHashMap<>();
         for (ParamDef d : t.parameters()) {
             if (d.sample() != null) p.put(d.name(), coerce(d.sample(), d.type()));
-            else if (d.defaultValue() == null) p.put(d.name(), fake(d.name(), d.type(), 0, r));
+            else if (d.defaultValue() == null && !looksLikeResource(d.name())) p.put(d.name(), fake(d.name(), d.type(), 0, r));
+            else if (d.defaultValue() == null) p.put(d.name(), null);
         }
         List<Map<String, Object>> data = new ArrayList<>();
         if (!t.fields().isEmpty()) {
@@ -94,7 +95,8 @@ public final class SampleData {
     }
 
     private static Map<String, Object> row(List<FieldDef> fields, int i, Random r) {
-        Map<String, Object> m = new LinkedHashMap<>();
+        // objeto sem subcampos conhecidos: propriedades ausentes valem null (não derruba o preview)
+        Map<String, Object> m = fields.isEmpty() ? new io.github.mateusvpassos.relato.expr.Values.LenientMap() : new LinkedHashMap<>();
         for (FieldDef f : fields) {
             String type = f.type() == null ? "string" : f.type();
             if (f.sample() != null) m.put(f.name(), coerce(f.sample(), type));
@@ -155,6 +157,13 @@ public final class SampleData {
         if (n.contains("descricao") || n.contains("obs")) return "Descrição do item " + (i + 1);
         if (n.contains("codigo") || n.startsWith("cod") || n.equals("id")) return String.valueOf(1000 + i);
         return capital(name) + " " + (i + 1);
+    }
+
+    /** Parâmetros de caminho/imagem (logo, foto, path...) não recebem valor inventado. */
+    private static boolean looksLikeResource(String name) {
+        String n = name == null ? "" : name.toLowerCase(Locale.ROOT);
+        return n.startsWith("path") || n.contains("icon") || n.contains("logo") || n.contains("foto") || n.contains("imagem")
+                || n.contains("image") || n.contains("brasao") || n.contains("brasão") || n.endsWith("_dir");
     }
 
     private static String pick(String[] a, Random r) {

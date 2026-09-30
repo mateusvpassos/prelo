@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     implementation(project(":relato-core"))
+    implementation(project(":relato-jrxml"))
     implementation("org.apache.pdfbox:pdfbox:3.0.7")
     intellijPlatform {
         local(providers.gradleProperty("ideaLocalPath"))

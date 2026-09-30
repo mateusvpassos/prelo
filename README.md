@@ -12,6 +12,7 @@ Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON decla
 |---|---|
 | `relato-core` | engine (Java 17+, sem framework) |
 | `relato-fonts` | opcional: DejaVu Sans (Unicode completo) como fonte padrão |
+| `relato-jrxml` | migração de `.jrxml` (JasperReports) para `.report.json` (CLI + usado pelo plugin) |
 | `relato-spring-boot-starter` | bean `Relato` + `ReportResponses` para controllers |
 | `relato-intellij` | plugin: editor dividido JSON + preview, autocomplete/validação, exportar |
 
@@ -188,6 +189,27 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 - Dados do preview: `nome.sample.json` ao lado do template (`{"params": {...}, "data": [...]}`). Se ele não existir, os dados são inventados a partir de `fields`, com valor plausível pelo nome: `cnpj`, `cidade`, `valor`...
 - Na barra: zoom, **Dados de exemplo** (cria/abre o sample) e exportar PDF/XLSX/HTML.
 - `New → Relatório Relato` cria um template inicial.
+
+## Migrar do JasperReports
+
+- **No IntelliJ**: clique com o botão direito num `.jrxml` ou numa pasta e escolha **Converter para Relato (.report.json)**. O `.report.json` fica ao lado do original.
+- **Em lote, pela linha de comando**:
+  ```bash
+  ./gradlew :relato-jrxml:run --args="<pasta dos .jrxml> <pasta de saída> <pasta do código Java>"
+  ```
+
+Como a conversão funciona:
+- As bandas viram blocos em fluxo: os elementos da mesma altura viram colunas.
+- O detail de uma linha vira tabela, com os cabeçalhos casados pela posição. O detail de várias linhas vira lista.
+- Grupos e variáveis `Sum/Count/Average` viram grupos, subtotais e total geral.
+- Sub-relatórios viram `include`. Se o caminho vem de parâmetro (`$P{pathCabecalho}`), o nome é descoberto lendo o código Java (`parametros.put("pathCabecalho", ... "Cabecalho.jasper")`).
+- As expressões Java viram expressões do relato: `$F/$P/$V`, concatenação, ternário, `SimpleDateFormat`, getters, `toUpperCase/trim/equals/substring`, `BigDecimal.add`...
+- O que não converter fica listado em comentários `//` no topo do arquivo.
+
+Nos 184 `.jrxml` reais de teste (sistemas legados, iReport antigo e JR 6), o resultado foi:
+- 183 convertidos (1 `.jrxml` está truncado na origem);
+- 0 das 1776 expressões ficaram sem tradução;
+- 95% geram o PDF direto com dados de exemplo.
 
 ## Desenvolvimento do designer
 

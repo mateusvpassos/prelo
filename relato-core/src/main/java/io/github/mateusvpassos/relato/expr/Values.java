@@ -28,6 +28,9 @@ public final class Values {
         }
     };
 
+    /** Mapa em que chave ausente vale null (parâmetros do relatório). */
+    public static final class LenientMap extends java.util.LinkedHashMap<String, Object> {}
+
     public static boolean hasProperty(Object obj, String name) {
         if (obj instanceof Map<?, ?> m) return m.containsKey(name);
         if (obj instanceof Collection<?> || obj.getClass().isArray()) return "size".equals(name) || "length".equals(name);
@@ -37,6 +40,7 @@ public final class Values {
     /** Valor da propriedade; nulo-seguro ({@code null.x} = null). Propriedade inexistente é erro. */
     public static Object property(Object obj, String name) {
         if (obj == null) return null;
+        if (obj instanceof LenientMap m) return m.get(name);
         if (obj instanceof Map<?, ?> m) {
             if (!m.containsKey(name)) throw new ExprException("propriedade '" + name + "' não existe no mapa (chaves: " + m.keySet() + ")");
             return m.get(name);
@@ -160,7 +164,8 @@ public final class Values {
     public static Object add(Object a, Object b) {
         if (a instanceof CharSequence || b instanceof CharSequence) return str(a) + str(b);
         if (a == null || b == null) return null;
-        return toNumber(a).add(toNumber(b));
+        BigDecimal x = toNumber(a), y = toNumber(b);
+        return x == null || y == null ? null : x.add(y);
     }
 
     public static Object arith(char op, Object a, Object b) {
@@ -182,13 +187,17 @@ public final class Values {
     public static boolean equal(Object a, Object b) {
         if (a == b) return true;
         if (a == null || b == null) return false;
-        if (a instanceof Number && b instanceof Number) return toNumber(a).compareTo(toNumber(b)) == 0;
+        if (a instanceof Number && b instanceof Number) {
+            BigDecimal x = toNumber(a), y = toNumber(b);
+            return x != null && y != null && x.compareTo(y) == 0;
+        }
         if (a instanceof Enum<?> e && b instanceof CharSequence s) return e.name().contentEquals(s);
         if (b instanceof Enum<?> e && a instanceof CharSequence s) return e.name().contentEquals(s);
         if (a instanceof CharSequence x && b instanceof CharSequence y) return x.toString().contentEquals(y);
         if (a instanceof Number && b instanceof CharSequence || a instanceof CharSequence && b instanceof Number) {
             try {
-                return toNumber(a).compareTo(toNumber(b)) == 0;
+                BigDecimal x = toNumber(a), y = toNumber(b);
+                return x != null && y != null && x.compareTo(y) == 0;
             } catch (ExprException e) {
                 return false;
             }
@@ -201,7 +210,11 @@ public final class Values {
         if (a == null && b == null) return 0;
         if (a == null) return -1;
         if (b == null) return 1;
-        if (a instanceof Number && b instanceof Number) return toNumber(a).compareTo(toNumber(b));
+        if (a instanceof Number && b instanceof Number) {
+            BigDecimal x = toNumber(a), y = toNumber(b);
+            if (x == null || y == null) return x == null ? (y == null ? 0 : -1) : 1;
+            return x.compareTo(y);
+        }
         if (a instanceof java.util.Date x && b instanceof java.util.Date y) return Long.compare(x.getTime(), y.getTime());
         if (a instanceof Comparable ca && a.getClass().isInstance(b)) return ca.compareTo(b);
         if (b instanceof Comparable cb && b.getClass().isInstance(a)) return -cb.compareTo(a);

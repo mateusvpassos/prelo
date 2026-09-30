@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="vendas-teste" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+	<parameter name="titulo" class="java.lang.String"/>
+	<field name="regiao" class="java.lang.String"/>
+	<field name="cliente" class="java.lang.String"/>
+	<field name="valor" class="java.math.BigDecimal"/>
+	<variable name="totalRegiao" class="java.math.BigDecimal" resetType="Group" resetGroup="regiao" calculation="Sum">
+		<variableExpression><![CDATA[$F{valor}]]></variableExpression>
+	</variable>
+	<variable name="total" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{valor}]]></variableExpression>
+	</variable>
+	<group name="regiao">
+		<groupExpression><![CDATA[$F{regiao}]]></groupExpression>
+		<groupHeader><band height="20">
+			<textField><reportElement x="0" y="0" width="555" height="20"/><textFieldExpression><![CDATA["Região: " + $F{regiao}]]></textFieldExpression></textField>
+		</band></groupHeader>
+		<groupFooter><band height="20">
+			<staticText><reportElement x="0" y="0" width="300" height="20"/><text><![CDATA[Subtotal]]></text></staticText>
+			<textField pattern="#,##0.00"><reportElement x="400" y="0" width="155" height="20"/><textFieldExpression><![CDATA[$V{totalRegiao}]]></textFieldExpression></textField>
+		</band></groupFooter>
+	</group>
+	<title><band height="30">
+		<textField><reportElement x="0" y="0" width="555" height="30"/><textElement textAlignment="Center"><font size="14" isBold="true"/></textElement><textFieldExpression><![CDATA[$P{titulo}.toUpperCase()]]></textFieldExpression></textField>
+	</band></title>
+	<columnHeader><band height="20">
+		<staticText><reportElement x="0" y="0" width="400" height="20"/><text><![CDATA[Cliente]]></text></staticText>
+		<staticText><reportElement x="400" y="0" width="155" height="20"/><text><![CDATA[Valor]]></text></staticText>
+	</band></columnHeader>
+	<detail><band height="18">
+		<textField><reportElement x="0" y="0" width="400" height="18"/><textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression></textField>
+		<textField pattern="#,##0.00"><reportElement x="400" y="0" width="155" height="18"/><textElement textAlignment="Right"/><textFieldExpression><![CDATA[$F{valor}]]></textFieldExpression></textField>
+	</band></detail>
+	<pageFooter><band height="20">
+		<textField><reportElement x="0" y="0" width="555" height="20"/><textFieldExpression><![CDATA["Página " + $V{PAGE_NUMBER}]]></textFieldExpression></textField>
+	</band></pageFooter>
+	<summary><band height="20">
+		<staticText><reportElement x="0" y="0" width="300" height="20"/><text><![CDATA[Total geral]]></text></staticText>
+		<textField pattern="#,##0.00"><reportElement x="400" y="0" width="155" height="20"/><textFieldExpression><![CDATA[$V{total}]]></textFieldExpression></textField>
+	</band></summary>
+</jasperReport>

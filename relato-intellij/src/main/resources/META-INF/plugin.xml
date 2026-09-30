@@ -12,6 +12,7 @@
       <li>Autocomplete e validação do JSON (schema embutido).</li>
       <li>Dados de exemplo gerados a partir de <code>fields</code>, ou lidos de <code>nome.sample.json</code>.</li>
       <li>Exporta PDF, HTML e XLSX do preview.</li>
+      <li>Migração do JasperReports: botão direito em .jrxml (ou pasta) → Converter para Relato.</li>
     </ul>
     ]]></description>
 
@@ -32,6 +33,11 @@
         <action id="Relato.NewReport" class="relato.intellij.NewReportAction" text="Relatório Relato"
                 description="Cria um arquivo .report.json" icon="AllIcons.FileTypes.Json">
             <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewFile"/>
+        </action>
+        <action id="Relato.ConvertJrxml" class="relato.intellij.jrxml.ConvertJrxmlAction" text="Converter para Relato (.report.json)"
+                description="Migra relatórios JasperReports (.jrxml) para o relato" icon="AllIcons.Actions.Refresh">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>

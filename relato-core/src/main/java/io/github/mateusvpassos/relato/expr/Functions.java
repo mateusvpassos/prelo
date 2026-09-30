@@ -114,6 +114,8 @@ public final class Functions {
             need(a, 2, "if(condição, valor, senão)");
             return Values.truthy(a.get(0)) ? a.get(1) : a.size() > 2 ? a.get(2) : null;
         });
+        fn("values", (a, s) -> a.get(0) instanceof Map<?, ?> m ? new ArrayList<>(m.values()) : Values.toList(a.get(0)));
+        fn("keys", (a, s) -> a.get(0) instanceof Map<?, ?> m ? new ArrayList<>(m.keySet()) : List.of());
         fn("today", (a, s) -> LocalDate.now(s.formatter().zone()));
         fn("now", (a, s) -> LocalDateTime.now(s.formatter().zone()));
     }

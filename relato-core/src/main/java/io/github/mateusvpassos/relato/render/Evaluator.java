@@ -60,9 +60,10 @@ public final class Evaluator {
     }
 
     Scope rootScope(ReportTemplate t, Object data, Map<String, ?> params) {
-        Map<String, Object> p = new LinkedHashMap<>();
+        // parâmetro declarado e não informado vale null (como no Jasper); não declarado também (mapa tolerante)
+        Map<String, Object> p = new Values.LenientMap();
         for (ParamDef d : t.parameters()) {
-            if (d.name() != null && d.defaultValue() != null) p.put(d.name(), d.defaultValue());
+            if (d.name() != null) p.put(d.name(), d.defaultValue());
         }
         if (params != null) p.putAll(params);
         Map<String, Object> pvars = new HashMap<>(p);
@@ -74,7 +75,10 @@ public final class Evaluator {
         Map<String, Object> dvars = new HashMap<>();
         dvars.put("rows", rows);
         dvars.put("data", data);
-        return paramScope.child(Values.isCollection(data) ? null : data, dvars, rows);
+        if (!Values.isCollection(data)) return paramScope.child(data, dvars, rows);
+        // fora de tabela/lista, campos soltos (ex.: no cabeçalho de página) leem o 1º registro, como no Jasper
+        Scope firstRow = rows.isEmpty() ? paramScope : paramScope.withRow(rows.get(0));
+        return firstRow.child(null, dvars, rows);
     }
 
     private List<Node> elements(List<Element> els, Scope scope, String path) {
@@ -256,7 +260,17 @@ public final class Evaluator {
         else {
             String s = v.toString().trim();
             if (s.startsWith("data:") || s.startsWith("http://") || s.startsWith("https://")) src = s;
-            else src = dataUri(ResourceResolver.readOrThrow(resources, s));
+            else if (img.src().contains("${")) {
+                // caminho vindo de dado/parâmetro: imagem ausente não derruba o relatório
+                byte[] b;
+                try {
+                    b = resources.read(s);
+                } catch (java.io.IOException e) {
+                    b = null;
+                }
+                if (b == null) return null;
+                src = dataUri(b);
+            } else src = dataUri(ResourceResolver.readOrThrow(resources, s));
         }
         StringBuilder st = new StringBuilder();
         if (img.width() != null) st.append("width:").append(img.width()).append(';');
