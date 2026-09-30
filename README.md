@@ -15,7 +15,7 @@ Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON decla
 | `relato-jrxml` | migração de `.jrxml` (JasperReports) para `.report.json` (CLI + usado pelo plugin) |
 | `relato-spring-boot-starter` | bean `Relato` + `ReportResponses` para controllers |
 | `relato-quarkus` | producer CDI (`@Inject Relato`) + `ReportResponses` JAX-RS |
-| `relato-intellij` | plugin: editor dividido JSON + preview, autocomplete/validação, exportar |
+| `relato-intellij` | plugin: designer visual, editor JSON com preview, campos a partir de DTO, migração de `.jrxml` |
 
 ## Instalar (local)
 
@@ -28,7 +28,8 @@ Gradle:
 repositories { mavenLocal(); mavenCentral() }
 dependencies {
     implementation("io.github.mateusvpassos:relato-spring-boot-starter:0.1.0-SNAPSHOT") // Spring
-    // ou implementation("io.github.mateusvpassos:relato-core:0.1.0-SNAPSHOT")          // qualquer Java
+    // ou relato-quarkus (Quarkus) / relato-core (qualquer Java)
+    // opcional: implementation("io.github.mateusvpassos:relato-fonts:0.1.0-SNAPSHOT")    // Unicode completo
 }
 ```
 
@@ -43,7 +44,7 @@ Maven (usa `~/.m2` automaticamente):
 
 Plugin IntelliJ: `./gradlew :relato-intellij:buildPlugin` → `Settings → Plugins → ⚙ → Install Plugin from Disk…` → `relato-intellij/build/distributions/relato-intellij-0.1.0.zip`.
 
-Passo a passo com projeto de teste: [TUTORIAL.md](TUTORIAL.md) (demo Spring em `demo-spring/`).
+Passo a passo com projetos de teste: [TUTORIAL.md](TUTORIAL.md) (`demo-spring/` e `demo-quarkus/`).
 
 > Build: rode o Gradle com o JBR da IDE (`JAVA_HOME="C:/Users/.../IntelliJ IDEA/jbr"`); o plugin usa a IDE local como SDK (`ideaLocalPath` em `gradle.properties`).
 
@@ -65,11 +66,15 @@ class RelatoriosController {
     }
 }
 ```
+Propriedades (Spring e Quarkus), com os valores padrão:
 ```properties
 relato.templates=classpath:reports/        # ou file:/caminho/reports (edita sem recompilar)
 relato.cache=true                          # false em dev
 relato.locale=pt-BR
 relato.zone=America/Sao_Paulo
+relato.date-pattern=dd/MM/yyyy
+relato.date-time-pattern=dd/MM/yyyy HH:mm
+relato.chunk-rows=4000                     # acima disso o PDF sai em blocos (ver "Relatórios grandes"); 0 desliga
 ```
 
 **Quarkus** (`io.github.mateusvpassos:relato-quarkus:0.1.0-SNAPSHOT`)
@@ -95,6 +100,13 @@ relato.report("vendas").data(lista).pdf(outputStream);
 ```
 
 Dados aceitos: `List`/coleção (vira `rows`, fonte padrão das tabelas), objeto único (propriedades acessíveis direto), records, POJOs com getters, `Map`. JDBC: `Rows.of(resultSet)`.
+
+Comportamentos úteis (iguais aos do Jasper):
+- Parâmetro não informado vale `null`, sem erro.
+- Com dados em lista, um campo usado fora de tabela/lista (ex.: no cabeçalho de página) lê o 1º registro.
+- Imagem cujo caminho vem de expressão e não existe é omitida; um caminho fixo inexistente dá erro.
+
+Erros de template ou de expressão apontam o bloco e o campo: `body[1].columns[0].value: 'vlor' não encontrado (disponíveis na linha: valor, ...)`.
 
 ## Template
 
@@ -132,6 +144,8 @@ Exemplos completos: [`examples/`](examples) (vendas com grupos, pedidos mestre-d
 | `box` | agrupa com estilo / sem quebrar | `content[]`, `keepTogether` |
 | `image` | imagem | `src` (`classpath:`, arquivo, URL, data URI, `${bytes}`), `width`, `height`, `align` |
 | `html` | escape hatch (XHTML) | `value` |
+| `barcode` | código de barras / QR | `value`, `format` (`qr code128 code39 ean13 ean8 upca itf datamatrix pdf417`), `width`, `height`, `showText` |
+| `include` | sub-relatório (corpo de outro template) | `template`, `data`, `params` |
 | `line` `spacer` `pageBreak` | | `color thickness` / `height` |
 
 Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
@@ -167,7 +181,7 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 - Operadores: `+ - * / %`, `== != < <= > >=`, `&& || !` (`and or not`), `a ? b : c`, `a ?? b`.
 - Variáveis: `rows`, `data`, `param.x` (ou só `x`), `index` (linha/item), `page`, `pages`, `groupKey`.
 - Agregações (no escopo corrente: grupo, tabela, lista ou dados): `sum avg min max count first last join`. Exemplos: `sum(valor)`, `sum(itens, qtd * preco)`, `count()`, `count(itens)`.
-- Funções: `format(v, 'padrão') upper lower trim text number len isEmpty coalesce contains replace substr round abs if today now`.
+- Funções: `format(v, 'padrão') upper lower trim text number len isEmpty coalesce contains replace substr round abs if values keys today now`.
 
 ### Formatos (`format`)
 
@@ -247,8 +261,21 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 - [x] Designer visual (arrastar blocos) no plugin
 - [x] Designer: redimensionar colunas, copiar/colar, preview lado a lado, seleção múltipla
 - [x] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
-- [ ] Subtotal por página (a transportar), marca d'água, cabeçalho só na 1ª página
+- [x] A transportar, marca d'água, cabeçalho só na 1ª página, sub-relatório, código de barras/QR
+- [x] Fonte com Unicode completo (`relato-fonts`)
 - [x] Relatórios grandes: PDF em blocos com memória limitada
+- [x] Migração do JasperReports (`relato-jrxml` + ação no plugin)
 - [x] Quarkus (`relato-quarkus`, modo JVM)
 - [ ] Quarkus native image
-- [x] Fonte com Unicode completo (`relato-fonts`)
+- [ ] Publicar (GitHub Packages) + CI
+
+## Testes
+
+```bash
+JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew test
+```
+Opcionais:
+- `-Drelato.perf=true`: medição de volume (5 a 50 mil linhas).
+- `-Drelato.jrxml.corpus="pasta1;pasta2"`: migra em lote `.jrxml` reais e mostra o resumo em `relato-jrxml/build/migrados`.
+
+As demos têm build próprio (`demo-spring/`, `demo-quarkus/`) e usam a lib do `mavenLocal`.

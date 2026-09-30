@@ -7,14 +7,18 @@ Tudo fica em `C:\Users\mvini\Documents\relato` (GitHub privado `mateusvpassos/re
 ```
 relato/
 ├── relato-core/                  engine (a lib que vai no seu sistema)
+├── relato-fonts/                 opcional: fonte com Unicode completo (✓ ★ Ω, cirílico...)
 ├── relato-spring-boot-starter/   integração Spring
-├── relato-intellij/              plugin (designer + preview)
-├── demo-spring/                  ← PROJETO DE TESTE (Spring Boot usando a lib)
+├── relato-quarkus/               integração Quarkus
+├── relato-jrxml/                 migração de relatórios JasperReports (.jrxml)
+├── relato-intellij/              plugin (designer, preview, campos de DTO, migração)
+├── demo-spring/                  ← PROJETO DE TESTE Spring Boot (porta 8085)
 │   └── src/main/resources/reports/
 │       ├── vendas.report.json    relatório com grupos, subtotais e total
 │       ├── pedidos.report.json   mestre-detalhe (pedido + itens)
 │       └── pedidos.sample.json   dados de exemplo para o preview
-├── examples/                     os mesmos templates, soltos
+├── demo-quarkus/                 ← PROJETO DE TESTE Quarkus (porta 8086)
+├── examples/                     templates de exemplo, soltos
 └── dev/designer-demo.html        designer fora da IDE (para desenvolver o próprio designer)
 ```
 
@@ -43,6 +47,11 @@ Isso copia a lib para `C:\Users\mvini\.m2\repository\io\github\mateusvpassos\`. 
 2. Espere o Gradle sincronizar e rode `DemoApplication` (▶ ao lado do `main`).
 3. Abra <http://localhost:8085>. Os links geram vendas e pedidos em PDF, XLSX e HTML.
 
+Quarkus: abra `relato/demo-quarkus` e rode, no terminal dessa pasta, o comando abaixo. Depois abra <http://localhost:8086/relatorios/vendas> (`?formato=xlsx` ou `?formato=html`).
+```bash
+./gradlew quarkusDev
+```
+
 O que acontece por trás (`RelatoriosController.java`):
 ```java
 var report = relato.report("vendas")      // lê reports/vendas.report.json
@@ -61,7 +70,9 @@ return ReportResponses.inline(report, Format.PDF, "vendas");
    - **Adicionar**: arraste da paleta à esquerda (Texto, Tabela, Linha...).
    - **Configurar**: clique no bloco; as propriedades aparecem à direita. Numa tabela, clique no cabeçalho de uma coluna para editar aquela coluna.
    - **Texto rápido**: duplo clique no texto.
-   - **Ver o PDF de verdade**: botão **▶ Preview PDF**.
+   - **Ver o PDF de verdade**: botão **▶ Preview PDF**; ou **◧ Lado a lado** para ver o PDF atualizando enquanto edita.
+   - **Largura das colunas**: arraste a borda entre dois cabeçalhos da tabela.
+   - **Vários blocos**: Ctrl+clique seleciona mais de um; Ctrl+C/Ctrl+V copia e cola, inclusive entre relatórios.
 3. Salve (Ctrl+S) e recarregue o PDF no navegador. O demo usa `relato.cache=false` e lê a pasta direto, então não precisa reiniciar.
 
 ## 5. Criar um relatório novo do zero (exercício)
@@ -135,7 +146,9 @@ dependencies { implementation("io.github.mateusvpassos:relato-spring-boot-starte
   <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
-- Sem Spring (Quarkus, Java puro): use `relato-core` e `Relato.builder()...build()` (exemplo no README).
+- Quarkus: use `relato-quarkus` e injete com `@Inject Relato relato` (mesmas propriedades `relato.*`; ver `demo-quarkus`).
+- Java puro: use `relato-core` e `Relato.builder()...build()` (exemplo no README).
+- Acentos já funcionam. Para símbolos fora do Latin-1 (✓ ★ → Ω, cirílico...), adicione `relato-fonts`.
 - Os templates ficam em `src/main/resources/reports/`.
 - Em produção use `relato.templates=classpath:reports/` e `relato.cache=true`, que já são o padrão.
 - Dados do banco: passe a lista de entidades/DTOs, ou `Rows.of(resultSet)` com JDBC puro.
@@ -164,4 +177,28 @@ dependencies { implementation("io.github.mateusvpassos:relato-spring-boot-starte
 - **Mudei a lib e o projeto não viu**: rode `publishToMavenLocal` de novo e dê *Reload Gradle Project* no IntelliJ.
 - **A aba Designer não aparece**: o plugin está instalado? A IDE foi reiniciada? O arquivo termina em `.report.json`?
 - **O Designer fica em "Carregando…"**: abra *Help → Show Log in Explorer* e procure `relato` no `idea.log`.
-- **Caractere virou `#` no PDF**: a fonte padrão (Helvetica) não tem esse símbolo. Registre uma fonte TTF com `Relato.builder().font(...)`.
+- **Caractere virou `#` no PDF**: a fonte padrão (Helvetica) não tem esse símbolo. Adicione a dependência `relato-fonts` (ou registre uma TTF com `Relato.builder().font(...)`).
+- **"Importar campos da classe" diz que não achou a classe**: use o nome completo (`demo.Dados.Venda`) e espere a IDE terminar de indexar.
+- **Relatório muito grande estourando memória**: o PDF já sai em blocos acima de 4000 linhas (`relato.chunk-rows`). Se a tabela usa `pageTotals`, os blocos ficam desligados.
+
+## 9. Migrar relatórios do Jasper
+
+1. No IntelliJ, clique com o botão direito num `.jrxml` (ou numa pasta cheia deles) e escolha **Converter para Relato (.report.json)**. O arquivo novo fica ao lado do original.
+2. Abra o `.report.json` gerado. Se houver algo para revisar, a lista está em comentários `//` no topo (ex.: expressão que não deu para traduzir, sub-relatório com nome adivinhado).
+3. Confira no **▶ Preview PDF**. Sub-relatórios viram blocos `include` e precisam estar na mesma pasta (converta a pasta inteira).
+4. No sistema, troque a chamada do Jasper por `relato.report("nome").data(lista).params(parametros).pdf()`. Os mesmos DTOs e o mesmo mapa de parâmetros servem.
+
+Em lote, pela linha de comando (o 3º argumento é a pasta do código Java, usada para descobrir qual `.jasper` vai em cada parâmetro de sub-relatório):
+```bash
+JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew :relato-jrxml:run --args="C:/projeto/reports C:/saida C:/projeto/src"
+```
+
+## 10. Recursos extras
+
+Os detalhes e exemplos de cada um estão no README (*Recursos de página*):
+- `"watermark"`: marca d'água (ex.: CANCELADO).
+- `"firstPageHeader"`: cabeçalho diferente na 1ª página.
+- `"pageTotals": true` na tabela: "a transportar" / "transporte".
+- Blocos `barcode` (QR, code128, EAN...) e `include` (sub-relatório).
+
+No Designer eles aparecem na paleta (*Código de barras / QR*, *Sub-relatório*), em ⚙ Relatório (*Marca d'água*) e nas propriedades da tabela (*A transportar*). O cabeçalho da 1ª página aparece no Designer pelo link *+ cabeçalho diferente na 1ª página*.

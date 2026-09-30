@@ -44,7 +44,9 @@
     as: 'Nome do item', separator: 'Separador entre itens', pageBreakBetween: 'Nova página por item', labelWidth: 'Largura do rótulo',
     items: 'Itens', label: 'Rótulo', span: 'Ocupa (colunas)', color: 'Cor', thickness: 'Espessura', title: 'Título', locale: 'Idioma',
     page: 'Página', size: 'Tamanho', orientation: 'Orientação', margin: 'Margens', css: 'CSS extra', parameters: 'Parâmetros',
-    fields: 'Campos dos dados', dataClass: 'Classe dos dados', name: 'Nome', type: 'Tipo', default: 'Valor padrão', sample: 'Valor de exemplo',
+    fields: 'Campos dos dados', dataClass: 'Classe dos dados', watermark: "Marca d'água", text: 'Texto', opacity: 'Opacidade (0 a 1)',
+    angle: 'Ângulo', pageTotals: 'A transportar (total por página)', carryLabel: 'Rótulo "a transportar"', broughtLabel: 'Rótulo "transporte"',
+    template: 'Template', data: 'Dados', params: 'Parâmetros', showText: 'Mostrar o texto abaixo', name: 'Nome', type: 'Tipo', default: 'Valor padrão', sample: 'Valor de exemplo',
   };
 
   const S = {
