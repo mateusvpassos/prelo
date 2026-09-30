@@ -14,6 +14,7 @@ Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON decla
 | `relato-fonts` | opcional: DejaVu Sans (Unicode completo) como fonte padrão |
 | `relato-jrxml` | migração de `.jrxml` (JasperReports) para `.report.json` (CLI + usado pelo plugin) |
 | `relato-spring-boot-starter` | bean `Relato` + `ReportResponses` para controllers |
+| `relato-quarkus` | producer CDI (`@Inject Relato`) + `ReportResponses` JAX-RS |
 | `relato-intellij` | plugin: editor dividido JSON + preview, autocomplete/validação, exportar |
 
 ## Instalar (local)
@@ -71,14 +72,23 @@ relato.locale=pt-BR
 relato.zone=America/Sao_Paulo
 ```
 
-**Quarkus / Java puro**
+**Quarkus** (`io.github.mateusvpassos:relato-quarkus:0.1.0-SNAPSHOT`)
 ```java
-@ApplicationScoped
-public class RelatoProducer {
-    @Produces @ApplicationScoped
-    Relato relato() { return Relato.builder().templates(TemplateLoader.classpath("reports/")).build(); }
-}
+@Path("/relatorios")
+public class RelatoriosResource {
+    @Inject Relato relato;   // configurado por application.properties (relato.templates, relato.cache...)
 
+    @GET @Path("/vendas")
+    public Response vendas(@QueryParam("formato") @DefaultValue("pdf") String formato) {
+        return ReportResponses.inline(relato.report("vendas").data(service.vendas()), Format.of(formato), "vendas");
+    }
+}
+```
+Projeto de teste: [`demo-quarkus/`](demo-quarkus). Testado em modo JVM; native image não foi validado (PDFBox/AWT).
+
+**Java puro**
+```java
+Relato relato = Relato.builder().templates(TemplateLoader.classpath("reports/")).build();
 byte[] pdf  = relato.report("vendas").data(lista).param("periodo", "09/2026").pdf();
 byte[] xlsx = relato.report("vendas").data(lista).xlsx();
 relato.report("vendas").data(lista).pdf(outputStream);
@@ -239,5 +249,6 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 - [x] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
 - [ ] Subtotal por página (a transportar), marca d'água, cabeçalho só na 1ª página
 - [x] Relatórios grandes: PDF em blocos com memória limitada
-- [ ] Extensão Quarkus (native image)
+- [x] Quarkus (`relato-quarkus`, modo JVM)
+- [ ] Quarkus native image
 - [x] Fonte com Unicode completo (`relato-fonts`)
