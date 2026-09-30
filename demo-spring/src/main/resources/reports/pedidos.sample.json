@@ -1,0 +1,9 @@
+{
+  "params": {},
+  "data": [
+    { "numero": 1001, "cliente": "Padaria Pão Quente", "emissao": "2026-09-01", "pago": true, "obs": null,
+      "itens": [ { "produto": "Farinha 5kg", "qtd": 10, "preco": 24.9 }, { "produto": "Fermento", "qtd": 4, "preco": 7.5 } ] },
+    { "numero": 1002, "cliente": "Mercado Bom Preço", "emissao": "2026-09-02", "pago": false, "obs": "Entregar pela manhã",
+      "itens": [ { "produto": "Arroz 5kg", "qtd": 30, "preco": 27.9 }, { "produto": "Feijão 1kg", "qtd": 40, "preco": 8.49 }, { "produto": "Óleo", "qtd": 24, "preco": 6.99 } ] }
+  ]
+}
