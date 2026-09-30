@@ -19,6 +19,21 @@
       window.relato.receive({ type: 'load', json: clean, schema, fileName: file + '.report.json' });
     }
     if (msg.type === 'preview') window.relato.receive({ type: 'preview', pages: [], total: 0, notes: ['(host simulado: sem PDF)'] });
+    if (msg.type === 'findClasses') window.relato.receive({ type: 'classes', items: ['demo.Dados.Venda', 'demo.Dados.Pedido', 'demo.Dados.Cliente'] });
+    if (msg.type === 'importFields') {
+      window.relato.receive({ type: 'fields', className: msg.className, fields: [
+        { name: 'regiao', type: 'string' }, { name: 'vendedor', type: 'string' },
+        { name: 'cliente', type: 'object', fields: [ { name: 'nome', type: 'string' }, { name: 'cnpj', type: 'string' } ] },
+        { name: 'data', type: 'date' }, { name: 'quantidade', type: 'integer' }, { name: 'valor', type: 'money' },
+        { name: 'itens', type: 'list', fields: [ { name: 'produto', type: 'string' }, { name: 'qtd', type: 'integer' } ] } ] });
+    }
+    if (msg.type === 'change') {
+      // simula o aviso de campo inexistente do plugin
+      const m = JSON.parse(msg.json);
+      const items = [];
+      (m.body || []).forEach((el, i) => { if (el.type === 'text' && /\$\{vlor\}/.test(el.value || '')) items.push({ path: ['body', i, 'value'], message: "campo 'vlor' não existe (disponíveis: valor, ...)" }); });
+      window.relato.receive({ type: 'problems', items });
+    }
   };
 </script>
 </head>

@@ -17,6 +17,8 @@ import com.intellij.ui.JBColor
 import com.intellij.util.Alarm
 import relato.intellij.PreviewEngine
 import relato.intellij.PreviewInputs
+import relato.intellij.fields.ClassFields
+import io.github.mateusvpassos.relato.check.FieldCheck
 import java.io.ByteArrayOutputStream
 import java.util.Base64
 import javax.imageio.ImageIO
@@ -74,6 +76,19 @@ class DesignerController(
                 previewAlarm.cancelAllRequests()
                 previewAlarm.addRequest({ renderPreview() }, 150)
             }
+            "findClasses" -> {
+                val q = msg.path("query").asText()
+                ApplicationManager.getApplication().executeOnPooledThread {
+                    post(mapOf("type" to "classes", "query" to q, "items" to ClassFields.findClasses(project, q)))
+                }
+            }
+            "importFields" -> {
+                val cls = msg.path("className").asText()
+                ApplicationManager.getApplication().executeOnPooledThread {
+                    val r = ClassFields.fields(project, cls)
+                    post(mapOf("type" to "fields", "className" to cls, "fields" to r.fields, "error" to r.error))
+                }
+            }
         }
     }
 
@@ -91,6 +106,15 @@ class DesignerController(
             schemaSent = true
         }
         post(msg)
+        sendProblems(normalized)
+    }
+
+    /** Avisos de campos (FieldCheck) para o designer marcar os blocos. */
+    private fun sendProblems(json: String) {
+        ApplicationManager.getApplication().executeOnPooledThread {
+            val items = FieldCheck.check(json).map { mapOf("path" to it.path(), "message" to it.message()) }
+            post(mapOf("type" to "problems", "items" to items))
+        }
     }
 
     private fun apply(json: String) {
@@ -103,6 +127,7 @@ class DesignerController(
                 applying = false
             }
         })
+        sendProblems(json)
     }
 
     private fun renderPreview() {

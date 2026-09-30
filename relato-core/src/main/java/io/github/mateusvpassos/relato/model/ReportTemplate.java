@@ -13,6 +13,7 @@ import java.util.List;
  * @param style       estilo base do documento (fonte, tamanho...)
  * @param css         CSS adicional, para casos avançados
  * @param parameters  parâmetros esperados (documentação, valores padrão e dados de exemplo)
+ * @param dataClass   classe dos dados (ex.: {@code com.empresa.VendaDTO}); o plugin gera {@code fields} a partir dela
  * @param fields      campos dos dados (documentação e dados de exemplo no preview)
  * @param pageHeader  repetido no topo de todas as páginas
  * @param body        conteúdo
@@ -27,6 +28,7 @@ public record ReportTemplate(
         Object style,
         String css,
         List<ParamDef> parameters,
+        String dataClass,
         List<FieldDef> fields,
         List<Element> pageHeader,
         List<Element> body,
@@ -42,6 +44,6 @@ public record ReportTemplate(
     }
 
     public ReportTemplate withName(String newName) {
-        return new ReportTemplate(schema, newName, title, locale, page, style, css, parameters, fields, pageHeader, body, pageFooter);
+        return new ReportTemplate(schema, newName, title, locale, page, style, css, parameters, dataClass, fields, pageHeader, body, pageFooter);
     }
 }

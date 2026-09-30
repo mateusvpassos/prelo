@@ -36,6 +36,7 @@
         }
       }
     },
+    "dataClass": { "type": "string", "description": "Classe dos dados (ex.: com.empresa.VendaDTO). O plugin importa os campos a partir dela.", "examples": ["com.empresa.VendaDTO"] },
     "fields": { "type": "array", "items": { "$ref": "#/definitions/field" }, "description": "Campos dos dados (documentação e dados de exemplo no preview)." },
     "pageHeader": { "$ref": "#/definitions/elements", "description": "Repetido no topo de todas as páginas." },
     "body": { "$ref": "#/definitions/elements" },

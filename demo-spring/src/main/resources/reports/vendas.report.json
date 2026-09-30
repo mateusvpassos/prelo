@@ -5,6 +5,7 @@
     { "name": "periodo", "type": "string", "sample": "09/2026" },
     { "name": "empresa", "type": "string", "default": "Minha Empresa Ltda" }
   ],
+  "dataClass": "demo.Dados.Venda",
   "fields": [
     { "name": "regiao", "type": "string" },
     { "name": "vendedor", "type": "string" },

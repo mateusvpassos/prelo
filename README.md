@@ -151,6 +151,11 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 - Tudo grava no `.report.json` (desfazer da IDE vale). Editar o texto atualiza o designer. **▶ Preview PDF** mostra o PDF real com os dados de exemplo.
 - Comentários `//` do JSON se perdem quando o designer regrava o arquivo.
 
+**Campos a partir de uma classe** (`"dataClass": "com.empresa.VendaDTO"`):
+- Designer: ⚙ Relatório → *Classe dos dados* → **Importar campos da classe**. No JSON: **Alt+Enter → Importar campos da classe**.
+- Lê record, POJO com getters, Lombok e Kotlin. Listas e objetos viram campos aninhados; `BigDecimal` com nome de valor vira `money`.
+- Com os campos declarados, `${...}` tem autocomplete pelo contexto (item da tabela/lista, objetos aninhados) e campo inexistente vira aviso.
+
 **Editor de texto** (aba *Relato*):
 - Qualquer `*.report.json` abre com o preview ao lado, que atualiza enquanto você digita, sem salvar.
 - Autocomplete, documentação e validação vêm do schema embutido ([`relato.schema.json`](relato-core/src/main/resources/relato.schema.json)).
@@ -170,7 +175,7 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 ## Roadmap
 
 - [x] Designer visual (arrastar blocos) no plugin
-- [ ] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
+- [x] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
 - [ ] Subtotal por página (a transportar), marca d'água, cabeçalho só na 1ª página
 - [ ] Extensão Quarkus (native image)
 - [ ] Fonte padrão embutida com Unicode completo (hoje: Helvetica/Latin-1; use `Relato.builder().font(...)` para outras)

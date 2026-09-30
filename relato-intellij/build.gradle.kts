@@ -20,7 +20,9 @@ dependencies {
         local(providers.gradleProperty("ideaLocalPath"))
         bundledPlugin("com.intellij.modules.json")
         bundledPlugin("com.intellij.modules.jcef")
+        bundledPlugin("com.intellij.java")
         testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.Plugin.Java)
     }
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.opentest4j:opentest4j:1.3.0")
@@ -53,7 +55,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
 tasks.test {
     // IDE local é Ultimate: carregar só o necessário evita extensões de licença que quebram em teste
-    systemProperty("idea.load.plugins.id", "io.github.mateusvpassos.relato,com.intellij.modules.json,com.intellij.modules.jcef")
+    systemProperty("idea.load.plugins.id", "io.github.mateusvpassos.relato,com.intellij.modules.json,com.intellij.modules.jcef,com.intellij.java")
 }
 
 tasks.buildPlugin {

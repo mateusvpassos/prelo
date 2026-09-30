@@ -41,12 +41,12 @@
     as: 'Nome do item', separator: 'Separador entre itens', pageBreakBetween: 'Nova página por item', labelWidth: 'Largura do rótulo',
     items: 'Itens', label: 'Rótulo', span: 'Ocupa (colunas)', color: 'Cor', thickness: 'Espessura', title: 'Título', locale: 'Idioma',
     page: 'Página', size: 'Tamanho', orientation: 'Orientação', margin: 'Margens', css: 'CSS extra', parameters: 'Parâmetros',
-    fields: 'Campos dos dados', name: 'Nome', type: 'Tipo', default: 'Valor padrão', sample: 'Valor de exemplo',
+    fields: 'Campos dos dados', dataClass: 'Classe dos dados', name: 'Nome', type: 'Tipo', default: 'Valor padrão', sample: 'Valor de exemplo',
   };
 
   const S = {
     model: null, schema: null, sel: null, colSel: null, fileName: '', history: [], future: [], mergeKey: null, mergeAt: 0,
-    drag: null, preview: false, zoom: 'fit', open: new Set(), hasHost: false, invalid: null,
+    drag: null, preview: false, zoom: 'fit', problems: [], open: new Set(), hasHost: false, invalid: null,
   };
 
   const $ = (id) => document.getElementById(id);
@@ -75,6 +75,13 @@
         case 'invalid': return onInvalid(msg.message);
         case 'preview': return onPreview(msg);
         case 'theme': document.body.classList.toggle('dark', !!msg.dark); return;
+        case 'classes': return onClasses(msg);
+        case 'fields': return onFields(msg);
+        case 'problems':
+          S.problems = msg.items || [];
+          decorateProblems();
+          if (!S.sel || S.problems.length) renderProblemsBox();
+          return;
         default: return;
       }
     },
@@ -493,8 +500,9 @@
     }
     h += '</div>';
     $('canvas').innerHTML = h;
-    applyZoom();
     $('status').textContent = countBlocks() + ' bloco(s)';
+    applyZoom();
+    decorateProblems();
   }
 
   /** 'fit' ajusta a página à largura disponível; senão, fator fixo. */
@@ -906,6 +914,7 @@
       if (a) ({ up: () => shift(p, -1), down: () => shift(p, 1), dup: () => duplicate(p), del: () => removeAt(p) })[a]();
     });
     box.append(head, bodyEl);
+    renderProblemsBox();
     const d = resolve(def(el.type));
     if (!d.properties) { bodyEl.innerHTML = '<div class="hint">Sem propriedades conhecidas.</div>'; return; }
     // estilo e visibilidade por último
@@ -926,6 +935,7 @@
       const label = LABELS[key] || key;
       const mk = JSON.stringify(ownerPath) + '.' + key;
       if (rn === 'style') { styleEditor(container, label, obj, key, mk); continue; }
+      if (key === 'dataClass') { classInput(container, obj, mk); continue; }
       if (node.type === 'array' && resolve(node.items).type === 'object') { arrayEditor(container, key, label, node, obj, ownerPath); continue; }
       if (node.type === 'object' && node.properties) {
         const fs = document.createElement('fieldset');
@@ -1188,6 +1198,133 @@
       }
     }));
     container.append(row);
+  }
+
+
+  // ---------------------------------------------------------------- classe dos dados (dataClass)
+
+  let classTimer = null;
+
+  function classInput(container, obj, mk) {
+    const row = document.createElement('div');
+    row.className = 'frow';
+    row.innerHTML = `<label>${esc(LABELS.dataClass)}<span class="k">dataClass</span></label>
+      <input type="text" list="dl-dataClass" placeholder="com.empresa.VendaDTO">
+      <div class="classbar"><button class="btn primary" type="button">⇩ Importar campos da classe</button><span class="cmsg"></span></div>
+      <div class="desc">Lê os atributos da classe (record, POJO, Lombok, Kotlin) e preenche os campos abaixo. Listas e objetos viram campos aninhados.</div>`;
+    const input = row.querySelector('input');
+    const btn = row.querySelector('button');
+    const cmsg = row.querySelector('.cmsg');
+    input.value = obj.dataClass || '';
+    if (!document.getElementById('dl-dataClass')) {
+      const dl = document.createElement('datalist');
+      dl.id = 'dl-dataClass';
+      document.body.append(dl);
+    }
+    input.addEventListener('input', () => {
+      commit(() => setProp(obj, 'dataClass', input.value.trim()), { props: false, merge: mk });
+      clearTimeout(classTimer);
+      const q = input.value.trim();
+      if (q.length >= 2) classTimer = setTimeout(() => host.send({ type: 'findClasses', query: q }), 250);
+    });
+    btn.addEventListener('click', () => {
+      const cls = input.value.trim();
+      if (!cls) { cmsg.textContent = 'informe a classe'; return; }
+      if (!S.hasHost && !window.relatoMockHost) { cmsg.textContent = 'disponível no plugin'; return; }
+      cmsg.textContent = 'lendo…';
+      host.send({ type: 'importFields', className: cls });
+    });
+    container.append(row);
+  }
+
+  function onClasses(msg) {
+    const dl = document.getElementById('dl-dataClass');
+    if (dl) dl.innerHTML = (msg.items || []).map((v) => `<option value="${esc(v)}">`).join('');
+  }
+
+  /** Junta com os campos existentes: vale a estrutura da classe, preserva label/sample. */
+  function mergeFields(fromClass, existing) {
+    const old = new Map((existing || []).filter((f) => f && f.name).map((f) => [f.name, f]));
+    return fromClass.map((f) => {
+      const prev = old.get(f.name);
+      if (!prev) return f;
+      const out = { name: f.name, type: f.type };
+      if (prev.label) out.label = prev.label;
+      if (prev.sample !== undefined) out.sample = prev.sample;
+      if (f.fields) out.fields = mergeFields(f.fields, prev.fields);
+      return out;
+    });
+  }
+
+  function onFields(msg) {
+    const cmsg = document.querySelector('.classbar .cmsg');
+    if (msg.error) {
+      if (cmsg) cmsg.textContent = msg.error;
+      $('status').textContent = msg.error;
+      return;
+    }
+    commit(() => {
+      S.model.dataClass = msg.className;
+      S.model.fields = mergeFields(msg.fields || [], S.model.fields);
+      S.open.add(openKey(['report'], 'fields', -1));
+    });
+    const n = (msg.fields || []).length;
+    const short = String(msg.className).split('.').pop();
+    $('status').textContent = n + ' campo(s) importados de ' + short;
+    const again = document.querySelector('.classbar .cmsg');
+    if (again) again.textContent = '✓ ' + n + ' campo(s) de ' + short;
+  }
+
+  // ---------------------------------------------------------------- avisos de campos
+
+  function problemsOf(path) {
+    const key = JSON.stringify(path);
+    return S.problems.filter((p) => {
+      const b = blockPathFor(p.path);
+      return b && JSON.stringify(b) === key;
+    });
+  }
+
+  /** Bloco (caminho de elemento) mais próximo de um caminho de propriedade. */
+  function blockPathFor(path) {
+    for (let n = path.length; n > 0; n--) {
+      const sub = path.slice(0, n);
+      if (typeof sub[sub.length - 1] === 'number' && isElement(getAt(sub))) return sub;
+    }
+    return null;
+  }
+
+  function decorateProblems() {
+    document.querySelectorAll('.blk.warn').forEach((b) => { b.classList.remove('warn'); b.removeAttribute('title'); });
+    const byBlock = new Map();
+    for (const p of S.problems) {
+      const b = blockPathFor(p.path);
+      if (!b) continue;
+      const k = JSON.stringify(b);
+      if (!byBlock.has(k)) byBlock.set(k, []);
+      byBlock.get(k).push(p.message);
+    }
+    for (const [k, msgs] of byBlock) {
+      const el = document.querySelector(`.blk[data-path='${k}']`);
+      if (!el) continue;
+      el.classList.add('warn');
+      el.title = msgs.join('\n');
+    }
+    const st = $('status');
+    if (S.problems.length && !S.preview) st.textContent = '⚠ ' + S.problems.length + ' aviso(s) de campos';
+    else if (!S.preview && S.model) st.textContent = countBlocks() + ' bloco(s)';
+  }
+
+  function renderProblemsBox() {
+    const bodyEl = document.querySelector('#props .pbody');
+    if (!bodyEl) return;
+    bodyEl.querySelector('.pwarn')?.remove();
+    const list = S.sel ? problemsOf(S.sel) : S.problems;
+    if (!list.length) return;
+    const box = document.createElement('div');
+    box.className = 'pwarn';
+    box.innerHTML = '<b>⚠ Avisos</b>' + list.map((p) => `<div>${esc(p.message)}</div>`).join('');
+    bodyEl.prepend(box);
   }
 
   // ---------------------------------------------------------------- preview

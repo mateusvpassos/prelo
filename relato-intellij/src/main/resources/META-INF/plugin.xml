@@ -7,6 +7,8 @@
     <ul>
       <li>Designer visual: arraste blocos e campos para montar o layout; propriedades editadas num painel.</li>
       <li>Editor dividido: JSON à esquerda, páginas do PDF à direita, atualizando enquanto você digita.</li>
+      <li>Campos a partir de uma classe do projeto (dataClass): record, POJO, Lombok ou Kotlin.</li>
+      <li>Autocomplete de ${campo} e aviso de campo inexistente, respeitando o escopo de tabelas e listas.</li>
       <li>Autocomplete e validação do JSON (schema embutido).</li>
       <li>Dados de exemplo gerados a partir de <code>fields</code>, ou lidos de <code>nome.sample.json</code>.</li>
       <li>Exporta PDF, HTML e XLSX do preview.</li>
@@ -15,6 +17,8 @@
 
     <depends>com.intellij.modules.platform</depends>
     <depends optional="true" config-file="relato-json.xml">com.intellij.modules.json</depends>
+    <!-- leitura de classes DTO (dataClass) -->
+    <depends optional="true" config-file="relato-java.xml">com.intellij.java</depends>
     <!-- 2026.2+: JCEF é um plugin à parte; nas versões antigas faz parte da plataforma -->
     <depends optional="true" config-file="relato-jcef.xml">com.intellij.modules.jcef</depends>
 

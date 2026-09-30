@@ -71,7 +71,15 @@ Vamos fazer um relatório de **produtos por categoria**.
 **5.1 Criar o arquivo**
 Clique com o botão direito na pasta `reports`, escolha **New → Relatório Relato** e digite `produtos`. O arquivo já vem com cabeçalho, uma tabela e o rodapé com "Página X de Y".
 
-**5.2 Declarar os campos** (servem para arrastar e para gerar dados de exemplo)
+**5.2 Declarar os campos** (servem para arrastar, para o autocomplete e para gerar dados de exemplo)
+
+*Jeito rápido, a partir da classe:* crie antes o record `Produto` do passo 5.5. No Designer, clique em **⚙ Relatório**, digite `Produto` em *Classe dos dados* (a lista sugere as classes do projeto) e clique em **⇩ Importar campos da classe**. No editor de texto dá para fazer o mesmo: escreva `"dataClass": "demo.Produto"` e use **Alt+Enter → Importar campos da classe**.
+
+A partir daí:
+- `${` no texto sugere os campos certos para o ponto onde você está. Dentro de uma tabela `source: "itens"`, os campos do item aparecem primeiro.
+- Um campo que não existe fica sublinhado em amarelo no JSON e marcado com ⚠ no Designer.
+
+*Jeito manual:*
 Na aba **Designer**, clique em **⚙ Relatório**, vá em *Campos dos dados* e use **+ adicionar**. Deixe assim:
 
 | Nome | Tipo |

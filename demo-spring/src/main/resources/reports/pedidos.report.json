@@ -1,36 +1,64 @@
 {
   "title": "Pedidos",
   "page": { "size": "A4", "orientation": "landscape" },
-  "pageHeader": [
-    { "type": "text", "value": "Pedidos do dia", "style": { "bold": true, "size": 13 } },
-    { "type": "line" }
-  ],
+  "pageHeader": [ { "type": "text", "value": "Pedidos do dia", "style": { "bold": true, "size": 13 } }, { "type": "line" } ],
   "body": [
-    { "type": "list", "source": "rows", "as": "pedido", "separator": true, "keepTogether": true,
+    {
+      "type": "list",
+      "source": "rows",
+      "as": "pedido",
+      "separator": true,
+      "keepTogether": true,
       "content": [
-        { "type": "fields", "columns": 3, "labelWidth": "22mm", "items": [
-          { "label": "Pedido", "value": "${numero}" },
-          { "label": "Cliente", "value": "${cliente}", "span": 2 },
-          { "label": "Emissão", "value": "${emissao}", "format": "date" },
-          { "label": "Pago", "value": "${pago}", "format": "Sim|Não" },
-          { "label": "Itens", "value": "${count(itens)}" }
-        ] },
-        { "type": "table", "source": "itens", "grid": true,
+        {
+          "type": "fields",
+          "columns": 3,
+          "labelWidth": "22mm",
+          "items": [
+            { "label": "Pedido", "value": "${numero}" },
+            { "label": "Cliente", "value": "${cliente}", "span": 2 },
+            { "label": "Emissão", "value": "${emissao}", "format": "date" },
+            { "label": "Pago", "value": "${pago}", "format": "Sim|Não" },
+            { "label": "Itens", "value": "${count(itens)}" }
+          ]
+        },
+        { "type": "line" },
+        {
+          "type": "table",
+          "source": "itens",
+          "grid": true,
           "columns": [
             { "header": "Produto", "value": "${produto}", "width": "50%" },
             { "header": "Qtd", "value": "${qtd}", "width": "15%", "total": "sum" },
             { "header": "Unitário", "value": "${preco}", "format": "currency", "width": "15%" },
-            { "header": "Subtotal", "value": "${qtd * preco}", "format": "currency", "width": "20%", "total": "sum" }
-          ] },
-        { "type": "text", "value": "Observação: ${obs}", "visible": "obs != null", "style": { "italic": true, "color": "#666" } }
+            {
+              "header": "Subtotal",
+              "value": "${qtd * preco}",
+              "format": "currency",
+              "width": "20%",
+              "total": "sum"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "value": "Observação: ${obs}",
+          "visible": "obs != null",
+          "style": { "italic": true, "color": "#666" }
+        }
       ],
       "footer": [
         { "type": "spacer" },
-        { "type": "text", "value": "Total de pedidos: ${count()}", "style": { "bold": true, "align": "right" } }
+        {
+          "type": "text",
+          "value": "Total de pedidos: ${count()}",
+          "style": { "bold": true, "align": "right" }
+        }
       ]
     }
   ],
   "pageFooter": [
-    { "type": "text", "value": "${page}/${pages}", "align": "center", "style": { "size": 8 } }
+    { "type": "line" },
+    { "type": "text", "value": "Página ${page} de ${pages}", "align": "right", "style": { "size": 8 } }
   ]
 }

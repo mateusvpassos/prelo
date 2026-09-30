@@ -145,3 +145,13 @@ fieldset > legend { font-size: 11.5px; color: var(--muted); padding: 0 4px; }
 body.dragging-now, body.dragging-now * { cursor: grabbing !important; user-select: none !important; }
 .blk .r-text { user-select: none; }
 .blk .r-text[contenteditable="true"] { user-select: text; }
+.blk.warn { outline: 1px dashed #d98a00; }
+.blk.warn::before { content: "⚠"; position: absolute; left: -14px; top: 0; font-size: 11px; color: #d98a00; }
+.pwarn { border: 1px solid #e6b85c; background: #fff7e6; color: #6b4a00; border-radius: 6px; padding: 6px 8px; margin: 8px 0; font-size: 12px; }
+body.dark .pwarn { background: #3a3120; color: #f0cf8a; border-color: #7a6030; }
+.pwarn div { margin-top: 3px; }
+.classbar { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.classbar .cmsg { font-size: 11.5px; color: var(--muted); }
+.btn { border: 1px solid var(--line); background: var(--panel2); border-radius: 5px; padding: 3px 10px; cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { filter: brightness(1.1); }
