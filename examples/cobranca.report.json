@@ -1,0 +1,276 @@
+{
+  "title": "Cobrança ${numero}",
+  "page": {
+    "size": "A4",
+    "margin": "15mm"
+  },
+  "metadata": {
+    "author": "Plenum Tecnologia",
+    "subject": "Cobrança ${numero}",
+    "keywords": "cobrança, pix, boleto"
+  },
+  "parameters": [
+    {
+      "name": "numero",
+      "type": "string",
+      "sample": "F-2026-0815"
+    },
+    {
+      "name": "cliente",
+      "type": "string",
+      "sample": "Mercado Bom Preço Ltda"
+    },
+    {
+      "name": "documento",
+      "type": "string",
+      "sample": "11222333000181"
+    },
+    {
+      "name": "vencimento",
+      "type": "date",
+      "sample": "2026-10-20"
+    },
+    {
+      "name": "chavePix",
+      "type": "string",
+      "sample": "financeiro@plenum.exemplo.com"
+    },
+    {
+      "name": "linhaDigitavel",
+      "type": "string",
+      "sample": "00190000090123456789701234567897912340000048750"
+    }
+  ],
+  "fields": [
+    {
+      "name": "descricao",
+      "type": "string"
+    },
+    {
+      "name": "qtd",
+      "type": "integer"
+    },
+    {
+      "name": "unitario",
+      "type": "money"
+    }
+  ],
+  "body": [
+    {
+      "type": "row",
+      "columns": [
+        {
+          "width": "65%",
+          "content": [
+            {
+              "type": "text",
+              "value": "Plenum Tecnologia Ltda",
+              "style": {
+                "bold": true,
+                "size": 14
+              }
+            },
+            {
+              "type": "text",
+              "value": "Rua Exemplo, 100 · Curitiba/PR · CNPJ 11.444.777/0001-61",
+              "style": {
+                "size": 8,
+                "color": "#666"
+              }
+            }
+          ]
+        },
+        {
+          "width": "35%",
+          "align": "right",
+          "content": [
+            {
+              "type": "text",
+              "value": "COBRANÇA",
+              "style": {
+                "bold": true,
+                "size": 14,
+                "color": "#1f3a68"
+              }
+            },
+            {
+              "type": "text",
+              "value": "nº ${numero}",
+              "style": {
+                "size": 9
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "line",
+      "thickness": "1pt",
+      "color": "#1f3a68"
+    },
+    {
+      "type": "spacer",
+      "height": "3mm"
+    },
+    {
+      "type": "fields",
+      "columns": 2,
+      "items": [
+        {
+          "label": "Cliente",
+          "value": "${cliente}",
+          "span": 2
+        },
+        {
+          "label": "CPF/CNPJ",
+          "value": "${documento}",
+          "format": "cpfCnpj"
+        },
+        {
+          "label": "Vencimento",
+          "value": "${vencimento}",
+          "format": "date"
+        }
+      ]
+    },
+    {
+      "type": "spacer",
+      "height": "4mm"
+    },
+    {
+      "type": "table",
+      "zebra": true,
+      "totalLabel": "Total a pagar",
+      "columns": [
+        {
+          "header": "Descrição",
+          "value": "${descricao}",
+          "width": "55%"
+        },
+        {
+          "header": "Qtd",
+          "value": "${qtd}",
+          "align": "right",
+          "width": "10%"
+        },
+        {
+          "header": "Unitário",
+          "value": "${unitario}",
+          "format": "currency",
+          "width": "15%"
+        },
+        {
+          "header": "Total",
+          "value": "${qtd * unitario}",
+          "format": "currency",
+          "total": "sum",
+          "width": "20%"
+        }
+      ]
+    },
+    {
+      "type": "spacer",
+      "height": "8mm"
+    },
+    {
+      "type": "box",
+      "keepTogether": true,
+      "style": {
+        "border": "0.8pt solid #1f3a68",
+        "padding": "4mm"
+      },
+      "content": [
+        {
+          "type": "row",
+          "gap": "6mm",
+          "columns": [
+            {
+              "width": "30%",
+              "align": "center",
+              "content": [
+                {
+                  "type": "barcode",
+                  "format": "qr",
+                  "width": "42mm",
+                  "value": "${pix(chavePix, sum(qtd * unitario), 'PLENUM TECNOLOGIA', 'CURITIBA', replace(numero, '-', ''))}"
+                }
+              ]
+            },
+            {
+              "width": "70%",
+              "content": [
+                {
+                  "type": "text",
+                  "value": "Pague com Pix",
+                  "style": {
+                    "bold": true,
+                    "size": 13,
+                    "color": "#1f3a68"
+                  }
+                },
+                {
+                  "type": "text",
+                  "value": "Abra o app do seu banco, escolha Pix › Ler QR code. Valor: ${format(sum(qtd * unitario), 'currency')}.",
+                  "style": {
+                    "size": 9
+                  }
+                },
+                {
+                  "type": "spacer",
+                  "height": "2mm"
+                },
+                {
+                  "type": "text",
+                  "value": "Pix copia e cola:",
+                  "style": {
+                    "size": 8,
+                    "bold": true
+                  }
+                },
+                {
+                  "type": "text",
+                  "value": "${pix(chavePix, sum(qtd * unitario), 'PLENUM TECNOLOGIA', 'CURITIBA', replace(numero, '-', ''))}",
+                  "style": {
+                    "size": 7,
+                    "font": "monospace",
+                    "color": "#444",
+                    "wordBreak": "break-all"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "spacer",
+      "height": "6mm"
+    },
+    {
+      "type": "text",
+      "value": "Ou pague o boleto:",
+      "style": {
+        "bold": true,
+        "size": 9
+      }
+    },
+    {
+      "type": "text",
+      "value": "${substr(linhaDigitavel,0,5)}.${substr(linhaDigitavel,5,10)} ${substr(linhaDigitavel,10,15)}.${substr(linhaDigitavel,15,21)} ${substr(linhaDigitavel,21,26)}.${substr(linhaDigitavel,26,32)} ${substr(linhaDigitavel,32,33)} ${substr(linhaDigitavel,33,47)}",
+      "style": {
+        "font": "monospace",
+        "size": 11,
+        "bold": true
+      }
+    },
+    {
+      "type": "barcode",
+      "format": "itf",
+      "value": "${boleto(linhaDigitavel)}",
+      "width": "103mm",
+      "height": "13mm"
+    }
+  ]
+}

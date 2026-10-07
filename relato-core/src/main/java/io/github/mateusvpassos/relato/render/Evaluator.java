@@ -121,7 +121,7 @@ public final class Evaluator {
     }
 
     private Node element(Element e, Scope scope, String path) {
-        String css = Css.of(e.style());
+        String css = dynCss(Css.of(e.style()), scope);
         if (e instanceof Element.Text t) return textNode(t.value(), t.format(), Css.join(align(t.align()), css), scope);
         if (e instanceof Element.Html h) {
             StringBuilder sb = new StringBuilder();
@@ -252,7 +252,23 @@ public final class Evaluator {
             }
         }
         List<String> cats = new ArrayList<>(byCat.keySet());
-        if (c.limit() != null && c.limit() > 0 && cats.size() > c.limit()) cats = cats.subList(0, c.limit());
+        if (c.limit() != null && c.limit() > 0 && cats.size() > c.limit()) {
+            boolean pie = "pie".equals(c.chartType()) || "donut".equals(c.chartType());
+            if (pie && c.limit() > 1) {
+                // fatias além do limite somadas em "Outros"
+                double[] rest = new double[seriesExprs.size()];
+                for (String k : cats.subList(c.limit() - 1, cats.size())) {
+                    double[] v = byCat.get(k);
+                    for (int i = 0; i < rest.length; i++) rest[i] += v[i];
+                }
+                cats = new ArrayList<>(cats.subList(0, c.limit() - 1));
+                String outros = byCat.containsKey("Outros") ? "Outros " : "Outros";
+                byCat.put(outros, rest);
+                cats.add(outros);
+            } else {
+                cats = cats.subList(0, c.limit());
+            }
+        }
         List<Charts.Series> series = new ArrayList<>();
         List<String> palette = c.colors().isEmpty() ? Charts.PALETTE : c.colors();
         for (int i = 0; i < seriesExprs.size(); i++) {
@@ -495,8 +511,9 @@ public final class Evaluator {
         List<?> items = sorted(Values.toList(expr(t.source() == null ? "rows" : t.source(), scope)), t.sortBy(), scope);
         List<Node.ColSpec> specs = new ArrayList<>();
         for (Element.TableColumn c : t.columns()) {
+            String colCss = Css.of(c.style());
             specs.add(new Node.ColSpec(c.header() == null ? "" : text(c.header(), null, scope), c.width(),
-                    c.align(), Css.of(c.style()), Css.of(c.headerStyle())));
+                    c.align(), colCss.contains("${") ? "" : colCss, Css.of(c.headerStyle())));
         }
         Scope tableScope = scope.child(null, null, items);
         List<Node.TRow> rows = new ArrayList<>();
@@ -533,7 +550,10 @@ public final class Evaluator {
                 for (int i = 0; i < t.columns().size(); i++) {
                     Element.TableColumn c = t.columns().get(i);
                     try {
-                        cells.add(cell(c.value(), c.format(), rs));
+                        Node.Cell cell = cell(c.value(), c.format(), rs);
+                        String colCss = Css.of(c.style());
+                        if (colCss.contains("${")) cell = new Node.Cell(cell.text(), cell.raw(), cell.format(), dynCss(colCss, rs));
+                        cells.add(cell);
                     } catch (ReportException e) {
                         throw new ReportException(e.getMessage() + " (linha " + index[0] + ")", path + ".columns[" + i + "].value", e);
                     }
@@ -565,6 +585,12 @@ public final class Evaluator {
             }
             first = false;
         }
+    }
+
+    /** Estilo com expressões (formatação condicional): {@code "color": "${saldo < 0 ? 'red' : ''}"}. */
+    private String dynCss(String css, Scope scope) {
+        if (css == null || !css.contains("${")) return css;
+        return text(css, null, scope).replaceAll("[a-z-]+:\\s*(;|$)", "");
     }
 
     private Node.Cell cell(String template, String format, Scope scope) {

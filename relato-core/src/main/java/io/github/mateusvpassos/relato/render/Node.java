@@ -60,7 +60,11 @@ sealed interface Node {
     record ColSpec(String header, String width, String align, String css, String headerCss) {}
 
     /** Célula: texto formatado + valor cru (para XLSX tipado). */
-    record Cell(String text, Object raw, String format) {}
+    record Cell(String text, Object raw, String format, String css) {
+        Cell(String text, Object raw, String format) {
+            this(text, raw, format, null);
+        }
+    }
 
     sealed interface TRow {}
 

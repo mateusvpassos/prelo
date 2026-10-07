@@ -5,7 +5,8 @@ Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON decla
 - **Template `*.report.json`**: cabeçalho e rodapé de página, tabelas com grupos, subtotais e total geral, listas mestre-detalhe, fichas, imagens e colunas.
 - **Paginação de verdade**: cabeçalho da tabela repetido em cada página, `Página X de Y` e quebra por grupo.
 - **Expressões** `${cliente.nome}`, `${sum(valor)}`, `${qtd * preco}`, `${ativo ? 'Sim' : 'Não'}`.
-- **Saídas**: PDF (OpenHTMLtoPDF/PDFBox), XLSX tipado (números e datas reais) e HTML.
+- **Saídas**: PDF (OpenHTMLtoPDF/PDFBox), XLSX tipado (números e datas reais), HTML e CSV.
+- **Além de listagens**: gráficos, tabela cruzada, etiquetas/crachás, contratos em Markdown, cobrança com QR Pix e boleto, PDF com senha. Veja a [galeria](docs/GALERIA.md).
 - **Licenças livres**: LGPL (openhtmltopdf) e Apache 2 (PDFBox, fastexcel, Jackson).
 
 | Módulo | O que é |
@@ -97,6 +98,7 @@ Projeto de teste: [`demo-quarkus/`](demo-quarkus). Testado em modo JVM; native i
 Relato relato = Relato.builder().templates(TemplateLoader.classpath("reports/")).build();
 byte[] pdf  = relato.report("vendas").data(lista).param("periodo", "09/2026").pdf();
 byte[] xlsx = relato.report("vendas").data(lista).xlsx();
+byte[] csv  = relato.report("vendas").data(lista).csv();   // 1ª tabela, ';' e vírgula decimal (Excel pt-BR)
 relato.report("vendas").data(lista).pdf(outputStream);
 ```
 
@@ -131,7 +133,7 @@ Erros de template ou de expressão apontam o bloco e o campo: `body[1].columns[0
 }
 ```
 
-Exemplos completos: [`examples/`](examples) (vendas com grupos, pedidos mestre-detalhe).
+Exemplos completos: [`examples/`](examples) e a [galeria](docs/GALERIA.md) com imagens (painel com gráficos, cobrança Pix, etiquetas, crachás, contrato).
 
 ### Blocos (`type`)
 
@@ -147,11 +149,21 @@ Exemplos completos: [`examples/`](examples) (vendas com grupos, pedidos mestre-d
 | `html` | escape hatch (XHTML) | `value` |
 | `barcode` | código de barras / QR | `value`, `format` (`qr code128 code39 ean13 ean8 upca itf datamatrix pdf417`), `width`, `height`, `showText` |
 | `include` | sub-relatório (corpo de outro template) | `template`, `data`, `params` |
+| `chart` | gráfico (imagem nítida no PDF) | `chartType` (`bar hbar line area pie donut`), `label`, `value` ou `series[]` (`name value color`), `title`, `width`, `height`, `format`, `sortBy`, `limit`, `legend`, `showValues`, `colors` |
+| `crosstab` | tabela cruzada (pivot) com totais | `rows`, `columns`, `value`, `aggregate` (`sum count avg min max`), `format`, `rowHeader`, `totals`, `sortColumns` |
+| `labels` | etiquetas, crachás, cartões em grade | `columns`, `rowsPerPage`, `width`, `height`, `gap`, `padding`, `border`, `copies`, `content[]` |
+| `markdown` | texto longo formatado (contratos, cartas) | `value` (`# título`, `**negrito**`, `*itálico*`, listas, `>` citação, `---`), `align` |
 | `line` `spacer` `pageBreak` | | `color thickness` / `height` |
 
 Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 
 `style`: texto CSS ou objeto. Atalhos: `bold italic underline uppercase size align valign font color background border`. Outras chaves viram CSS (`marginTop: 4` → `margin-top:4pt`).
+
+**Estilo condicional**: valores de `style` aceitam expressões, avaliadas por bloco e, no `style` de coluna, por linha da tabela:
+```json
+{ "header": "Saldo", "value": "${saldo}", "format": "currency", "style": { "color": "${saldo < 0 ? '#c0392b' : ''}", "bold": true } }
+```
+Uma propriedade que resulta vazia é descartada.
 
 ### Recursos de página
 
@@ -172,6 +184,7 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 - **`pageTotals`** na tabela: "A transportar" no pé de cada página e "Transporte" no topo da seguinte, com o acumulado das colunas `total: "sum"`. Os rótulos mudam em `carryLabel` e `broughtLabel`.
 - **`barcode`**: `qr`, `code128`, `code39`, `ean13`, `ean8`, `upca`, `itf`, `datamatrix`, `pdf417`.
 - **`include`**: corpo de outro template (sub-relatório reaproveitável), com os dados e parâmetros que você passar.
+- **`metadata`** (`author subject keywords creator`) e **`security`** (`userPassword`, `ownerPassword`, `allowPrint`, `allowCopy`, `allowModify`; AES-256) no PDF. Ambos aceitam expressões: `"security": { "userPassword": "${cpf}" }` gera o extrato que abre com o CPF do cliente.
 - **Unicode completo** (✓ ★ → Ω €, grego, cirílico): adicione `io.github.mateusvpassos:relato-fonts:0.1.0-SNAPSHOT`. Com o jar no classpath, DejaVu Sans vira a fonte padrão.
 
 ### Expressões
@@ -183,6 +196,13 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 - Variáveis: `rows`, `data`, `param.x` (ou só `x`), `index` (linha/item), `page`, `pages`, `groupKey`.
 - Agregações (no escopo corrente: grupo, tabela, lista ou dados): `sum avg min max count first last join`. Exemplos: `sum(valor)`, `sum(itens, qtd * preco)`, `count()`, `count(itens)`.
 - Funções: `format(v, 'padrão') upper lower trim text number len isEmpty coalesce contains replace substr round abs if values keys today now`.
+- Pagamentos (Brasil):
+  - `pix(chave, valor, nome, cidade, txid, descricao)`: BR Code do Pix estático (o "copia e cola"). Use como `value` de um `barcode` `qr` ou mostre como texto. Só a chave é obrigatória.
+  - `boleto(linhaDigitavel)`: converte a linha digitável (47 dígitos, ou 48 de convênio) nos 44 dígitos do código de barras, para `barcode` `itf`.
+  ```json
+  { "type": "barcode", "format": "qr", "value": "${pix(chave, total, 'MINHA EMPRESA', 'CURITIBA', numero)}", "width": "40mm" },
+  { "type": "barcode", "format": "itf", "value": "${boleto(linha)}", "width": "103mm", "height": "13mm" }
+  ```
 
 ### Formatos (`format`)
 
@@ -213,6 +233,7 @@ Todos aceitam `style` e `visible` (expressão; ex.: `"visible": "obs != null"`).
 - Autocomplete, documentação e validação vêm do schema embutido ([`relato.schema.json`](relato-core/src/main/resources/relato.schema.json)).
 - Dados do preview: `nome.sample.json` ao lado do template (`{"params": {...}, "data": [...]}`). Se ele não existir, os dados são inventados a partir de `fields`, com valor plausível pelo nome: `cnpj`, `cidade`, `valor`...
 - Na barra: zoom, **Dados de exemplo** (cria/abre o sample) e exportar PDF/XLSX/HTML.
+- Paleta do designer inclui gráfico, tabela cruzada, etiquetas e texto formatado, e os prontos *QR Pix* e *Boleto (ITF)*.
 - `New → Relatório Relato` cria um template inicial.
 
 ## Relatórios grandes
@@ -267,6 +288,7 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 - [x] Relatórios grandes: PDF em blocos com memória limitada
 - [x] Migração do JasperReports (`relato-jrxml` + ação no plugin)
 - [x] Quarkus (`relato-quarkus`, modo JVM)
+- [x] Gráficos, tabela cruzada, etiquetas/crachás, Markdown, Pix/boleto, PDF com senha e metadados, CSV, estilo condicional
 - [ ] Quarkus native image
 - [ ] Publicar (GitHub Packages) + CI
 
@@ -277,6 +299,7 @@ JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew te
 ```
 Opcionais:
 - `-Drelato.perf=true`: medição de volume (5 a 50 mil linhas).
+- `-Dgaleria=true`: regenera as imagens de `docs/galeria` a partir de `examples/`.
 - `-Drelato.jrxml.corpus="pasta1;pasta2"`: migra em lote `.jrxml` reais e mostra o resumo em `relato-jrxml/build/migrados`.
 
 As demos têm build próprio (`demo-spring/`, `demo-quarkus/`) e usam a lib do `mavenLocal`.

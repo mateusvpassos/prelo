@@ -1,0 +1,165 @@
+{
+  "title": "Painel de vendas",
+  "page": {
+    "size": "A4",
+    "orientation": "landscape",
+    "margin": "12mm"
+  },
+  "parameters": [
+    {
+      "name": "ano",
+      "type": "string",
+      "sample": "2026"
+    }
+  ],
+  "fields": [
+    {
+      "name": "regiao",
+      "type": "string"
+    },
+    {
+      "name": "mes",
+      "type": "string"
+    },
+    {
+      "name": "produto",
+      "type": "string"
+    },
+    {
+      "name": "receita",
+      "type": "money"
+    },
+    {
+      "name": "custo",
+      "type": "money"
+    }
+  ],
+  "body": [
+    {
+      "type": "text",
+      "value": "Painel de vendas · ${ano}",
+      "style": {
+        "bold": true,
+        "size": 16
+      }
+    },
+    {
+      "type": "spacer",
+      "height": "2mm"
+    },
+    {
+      "type": "fields",
+      "columns": 4,
+      "items": [
+        {
+          "label": "Receita",
+          "value": "${sum(receita)}",
+          "format": "currency"
+        },
+        {
+          "label": "Custo",
+          "value": "${sum(custo)}",
+          "format": "currency"
+        },
+        {
+          "label": "Margem",
+          "value": "${(sum(receita) - sum(custo)) / sum(receita)}",
+          "format": "percent"
+        },
+        {
+          "label": "Vendas",
+          "value": "${count()}"
+        }
+      ]
+    },
+    {
+      "type": "spacer",
+      "height": "3mm"
+    },
+    {
+      "type": "row",
+      "gap": "6mm",
+      "columns": [
+        {
+          "width": "36%",
+          "content": [
+            {
+              "type": "chart",
+              "chartType": "bar",
+              "title": "Receita por região",
+              "label": "${regiao}",
+              "value": "${receita}",
+              "sortBy": "regiao",
+              "format": "#,##0",
+              "width": "95mm",
+              "height": "62mm"
+            }
+          ]
+        },
+        {
+          "width": "28%",
+          "content": [
+            {
+              "type": "chart",
+              "chartType": "donut",
+              "title": "Mix de produtos",
+              "label": "${produto}",
+              "value": "${receita}",
+              "limit": 5,
+              "width": "75mm",
+              "height": "62mm"
+            }
+          ]
+        },
+        {
+          "width": "36%",
+          "content": [
+            {
+              "type": "chart",
+              "chartType": "line",
+              "title": "Receita × custo por mês",
+              "label": "${mes}",
+              "sortBy": "mes",
+              "series": [
+                {
+                  "name": "Receita",
+                  "value": "${receita}"
+                },
+                {
+                  "name": "Custo",
+                  "value": "${custo}",
+                  "color": "#d64545"
+                }
+              ],
+              "width": "95mm",
+              "height": "62mm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "spacer",
+      "height": "4mm"
+    },
+    {
+      "type": "text",
+      "value": "Receita por região e mês",
+      "style": {
+        "bold": true,
+        "size": 11,
+        "marginBottom": 2
+      }
+    },
+    {
+      "type": "crosstab",
+      "rows": "${regiao}",
+      "columns": "${mes}",
+      "value": "${receita}",
+      "format": "#,##0",
+      "rowHeader": "Região",
+      "zebra": true,
+      "sortColumns": "asc"
+    }
+  ]
+}

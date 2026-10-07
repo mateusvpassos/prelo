@@ -49,6 +49,26 @@ class FieldCheckTest {
     }
 
     @Test
+    void blocosNovosUsamEscopoDosItens() {
+        String ok = """
+                { "type": "chart", "label": "${regiao}", "sortBy": "-valor", "series": [ { "name": "${periodo}", "value": "${valor}" } ] },
+                { "type": "chart", "source": "itens", "label": "${produto}", "value": "${qtd}" },
+                { "type": "labels", "copies": "${len(itens)}", "content": [ { "type": "text", "value": "${item.regiao} ${cliente.nome} ${index}" } ] },
+                { "type": "crosstab", "rows": "${regiao}", "columns": "${cliente.nome}", "value": "${valor}" },
+                { "type": "markdown", "value": "**${periodo}** ${cliente.nome}" }
+                """;
+        assertEquals(List.of(), check(ok));
+        List<FieldCheck.Problem> ps = check("""
+                { "type": "chart", "label": "${regao}", "value": "${valor}" },
+                { "type": "labels", "content": [ { "type": "text", "value": "${nomee}" } ] },
+                { "type": "crosstab", "rows": "${regiao}", "columns": "${mez}" },
+                { "type": "markdown", "value": "# ${titulo}" }
+                """);
+        assertEquals(List.of("body[0].label", "body[1].content[0].value", "body[2].columns", "body[3].value"),
+                ps.stream().map(FieldCheck.Problem::pathString).toList(), ps.toString());
+    }
+
+    @Test
     void acusaCampoInexistenteComPosicao() {
         List<FieldCheck.Problem> ps = check("""
                 { "type": "text", "value": "Total: ${vlor}" },
@@ -69,6 +89,13 @@ class FieldCheckTest {
         assertTrue(ps.get(3).message().contains("não é uma lista"), ps.get(3).message());
         assertTrue(ps.get(4).message().contains("é uma lista"), ps.get(4).message());
         assertTrue(ps.get(5).message().contains("incompleta"), ps.get(5).message());
+    }
+
+    @Test
+    void parametroComNomeReservado() {
+        List<FieldCheck.Problem> ps = FieldCheck.check("{\"parameters\":[{\"name\":\"data\"}],\"body\":[]}");
+        assertEquals(1, ps.size());
+        assertEquals("parameters[0].name", ps.get(0).pathString());
     }
 
     @Test

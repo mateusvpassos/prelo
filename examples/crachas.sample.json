@@ -1,0 +1,43 @@
+{
+  "params": {
+    "evento": "Semana de Tecnologia 2026"
+  },
+  "data": [
+    {
+      "nome": "Ana Souza",
+      "empresa": "Plenum Tech",
+      "funcao": "Palestrante",
+      "inscricao": "2026-0101"
+    },
+    {
+      "nome": "Bruno Lima",
+      "empresa": "Cooperativa Sul",
+      "funcao": "Participante",
+      "inscricao": "2026-0102"
+    },
+    {
+      "nome": "Carla Mendes",
+      "empresa": "Prefeitura de Curitiba",
+      "funcao": "Participante",
+      "inscricao": "2026-0103"
+    },
+    {
+      "nome": "Diego Rocha",
+      "empresa": "UFPR",
+      "funcao": "Palestrante",
+      "inscricao": "2026-0104"
+    },
+    {
+      "nome": "Elisa Prado",
+      "empresa": "Banco Exemplo",
+      "funcao": "Participante",
+      "inscricao": "2026-0105"
+    },
+    {
+      "nome": "Fábio Nunes",
+      "empresa": "Agro Norte",
+      "funcao": "Participante",
+      "inscricao": "2026-0106"
+    }
+  ]
+}

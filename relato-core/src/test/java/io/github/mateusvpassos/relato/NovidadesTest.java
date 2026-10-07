@@ -212,6 +212,19 @@ class NovidadesTest {
         assertEquals("Nome;Valor\r\n\"A; B\";1234,5\r\n\"C \"\"x\"\"\";2\r\n", s);
     }
 
+    @Test
+    void estiloCondicionalPorLinha() {
+        var t = Templates.parse("""
+                {"body":[{"type":"text","value":"x","style":{"color":"${ok ? 'green' : 'red'}"}},
+                  {"type":"table","source":"itens","columns":[{"header":"Saldo","value":"${saldo}","style":{"color":"${saldo < 0 ? '#c0392b' : ''}","bold":true}}]}]}
+                """);
+        String html = relato.report(t).data(Map.of("ok", false, "itens", List.of(Map.of("saldo", -5), Map.of("saldo", 7)))).html();
+        assertTrue(html.contains("color:red"), html);
+        assertTrue(html.contains("color:#c0392b;font-weight:bold"), html);
+        assertTrue(html.contains("<td style=\"text-align:right;font-weight:bold;\">7</td>") || html.matches("(?s).*<td[^>]*style=\"[^\"]*font-weight:bold;?\"[^>]*>7</td>.*"), html);
+        assertFalse(html.contains("${"), html);
+    }
+
     // ---------------------------------------------------------------- utilitários
 
     private static int count(String s, String sub) {

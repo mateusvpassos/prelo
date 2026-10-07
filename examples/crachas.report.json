@@ -1,0 +1,136 @@
+{
+  "title": "Crachás",
+  "page": {
+    "size": "A4",
+    "margin": "10mm"
+  },
+  "parameters": [
+    {
+      "name": "evento",
+      "type": "string",
+      "sample": "Semana de Tecnologia 2026"
+    }
+  ],
+  "fields": [
+    {
+      "name": "nome",
+      "type": "string"
+    },
+    {
+      "name": "empresa",
+      "type": "string"
+    },
+    {
+      "name": "funcao",
+      "type": "string"
+    },
+    {
+      "name": "inscricao",
+      "type": "string"
+    }
+  ],
+  "body": [
+    {
+      "type": "labels",
+      "columns": 2,
+      "rowsPerPage": 4,
+      "width": "90mm",
+      "height": "62mm",
+      "gap": "4mm",
+      "padding": "0",
+      "border": true,
+      "content": [
+        {
+          "type": "box",
+          "style": {
+            "background": "#1f3a68",
+            "color": "#fff",
+            "padding": "3mm"
+          },
+          "content": [
+            {
+              "type": "text",
+              "value": "${evento}",
+              "style": {
+                "bold": true,
+                "size": 10,
+                "align": "center"
+              }
+            }
+          ]
+        },
+        {
+          "type": "box",
+          "style": {
+            "padding": "3mm 4mm 0 4mm"
+          },
+          "content": [
+            {
+              "type": "row",
+              "columns": [
+                {
+                  "width": "64%",
+                  "content": [
+                    {
+                      "type": "text",
+                      "value": "${nome}",
+                      "style": {
+                        "bold": true,
+                        "size": 16
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "value": "${empresa}",
+                      "style": {
+                        "size": 10,
+                        "color": "#444",
+                        "marginTop": 2
+                      }
+                    },
+                    {
+                      "type": "spacer",
+                      "height": "3mm"
+                    },
+                    {
+                      "type": "text",
+                      "value": "${upper(funcao)}",
+                      "style": {
+                        "size": 8,
+                        "bold": true,
+                        "color": "#fff",
+                        "background": "${funcao == 'Palestrante' ? '#c0392b' : '#2e7d32'}",
+                        "padding": "1mm 2mm"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "value": "nº ${inscricao}",
+                      "style": {
+                        "size": 7,
+                        "color": "#888",
+                        "marginTop": 3
+                      }
+                    }
+                  ]
+                },
+                {
+                  "width": "36%",
+                  "align": "right",
+                  "content": [
+                    {
+                      "type": "barcode",
+                      "format": "qr",
+                      "value": "https://evento.exemplo.com/checkin/${inscricao}",
+                      "width": "27mm"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

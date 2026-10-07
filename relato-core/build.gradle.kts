@@ -29,6 +29,7 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.test {
     useJUnitPlatform()
     systemProperty("relato.perf", System.getProperty("relato.perf") ?: "false")
+    systemProperty("galeria", System.getProperty("galeria") ?: "false")
     maxHeapSize = System.getProperty("relato.heap") ?: "2g"
     testLogging { showStandardStreams = System.getProperty("relato.perf") == "true" }
 }

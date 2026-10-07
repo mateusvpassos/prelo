@@ -1,0 +1,134 @@
+{
+  "title": "Contrato de prestação de serviços",
+  "page": {
+    "size": "A4",
+    "margin": "25mm 22mm"
+  },
+  "metadata": {
+    "author": "${contratada}",
+    "subject": "Contrato nº ${numero}"
+  },
+  "parameters": [
+    {
+      "name": "numero",
+      "type": "string",
+      "sample": "2026/0042"
+    },
+    {
+      "name": "contratada",
+      "type": "string",
+      "sample": "Plenum Tecnologia Ltda"
+    },
+    {
+      "name": "contratante",
+      "type": "string",
+      "sample": "Mercado Bom Preço Ltda"
+    },
+    {
+      "name": "cnpj",
+      "type": "string",
+      "sample": "11222333000181"
+    },
+    {
+      "name": "valor",
+      "type": "money",
+      "sample": "4800"
+    },
+    {
+      "name": "parcelas",
+      "type": "integer",
+      "sample": "12"
+    },
+    {
+      "name": "cidade",
+      "type": "string",
+      "sample": "Curitiba"
+    },
+    {
+      "name": "assinatura",
+      "type": "date",
+      "sample": "2026-10-07"
+    }
+  ],
+  "pageFooter": [
+    {
+      "type": "text",
+      "value": "Contrato nº ${numero} · página ${page} de ${pages}",
+      "align": "center",
+      "style": {
+        "size": 7,
+        "color": "#888"
+      }
+    }
+  ],
+  "body": [
+    {
+      "type": "markdown",
+      "align": "justify",
+      "style": {
+        "size": 10.5
+      },
+      "value": "# Contrato de prestação de serviços nº ${numero}\n\nPelo presente instrumento, **${contratante}**, inscrita no CNPJ ${format(cnpj, 'cnpj')}, doravante *CONTRATANTE*, e **${contratada}**, doravante *CONTRATADA*, têm entre si justo e contratado o seguinte:\n\n## Cláusula 1ª · Do objeto\n\nA CONTRATADA prestará serviços de suporte e manutenção do sistema de gestão, compreendendo:\n\n1. atendimento em horário comercial;\n2. correção de defeitos em até **5 dias úteis**;\n3. atualizações de versão sem custo adicional.\n\n## Cláusula 2ª · Do preço\n\nO valor total é de **${format(valor, 'currency')}**, pago em ${parcelas} parcelas mensais de ${format(valor / parcelas, 'currency')}.\n\n> Atrasos sofrem multa de 2% e juros de 1% ao mês.\n\n## Cláusula 3ª · Da vigência\n\nEste contrato vigora por 12 meses a partir da assinatura, renovável por igual período.\n\n---\n\n${cidade}, ${format(assinatura, \"dd 'de' MMMM 'de' yyyy\")}."
+    },
+    {
+      "type": "spacer",
+      "height": "22mm"
+    },
+    {
+      "type": "row",
+      "gap": "15mm",
+      "columns": [
+        {
+          "width": "50%",
+          "align": "center",
+          "content": [
+            {
+              "type": "line",
+              "color": "#333"
+            },
+            {
+              "type": "text",
+              "value": "${contratante}",
+              "style": {
+                "bold": true
+              }
+            },
+            {
+              "type": "text",
+              "value": "CONTRATANTE",
+              "style": {
+                "size": 8,
+                "color": "#666"
+              }
+            }
+          ]
+        },
+        {
+          "width": "50%",
+          "align": "center",
+          "content": [
+            {
+              "type": "line",
+              "color": "#333"
+            },
+            {
+              "type": "text",
+              "value": "${contratada}",
+              "style": {
+                "bold": true
+              }
+            },
+            {
+              "type": "text",
+              "value": "CONTRATADA",
+              "style": {
+                "size": 8,
+                "color": "#666"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

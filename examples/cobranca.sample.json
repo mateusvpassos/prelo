@@ -1,0 +1,27 @@
+{
+  "params": {
+    "numero": "F-2026-0815",
+    "cliente": "Mercado Bom Preço Ltda",
+    "documento": "11222333000181",
+    "vencimento": "2026-10-20",
+    "chavePix": "financeiro@plenum.exemplo.com",
+    "linhaDigitavel": "00190000090123456789701234567897912340000048750"
+  },
+  "data": [
+    {
+      "descricao": "Suporte mensal · outubro/2026",
+      "qtd": 1,
+      "unitario": 400
+    },
+    {
+      "descricao": "Horas extras de desenvolvimento",
+      "qtd": 3,
+      "unitario": 25
+    },
+    {
+      "descricao": "Licença módulo fiscal",
+      "qtd": 1,
+      "unitario": 12.5
+    }
+  ]
+}

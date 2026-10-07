@@ -1,0 +1,61 @@
+{
+  "params": {},
+  "data": [
+    {
+      "nome": "Café torrado 500g",
+      "codigo": "P0001",
+      "ean": "7891000010006",
+      "preco": 21.9,
+      "qtd": 1
+    },
+    {
+      "nome": "Açúcar cristal 1kg",
+      "codigo": "P0002",
+      "ean": "7891000010372",
+      "preco": 5.49,
+      "qtd": 2
+    },
+    {
+      "nome": "Leite integral 1L",
+      "codigo": "P0003",
+      "ean": "7891000010747",
+      "preco": 4.99,
+      "qtd": 3
+    },
+    {
+      "nome": "Arroz tipo 1 5kg",
+      "codigo": "P0004",
+      "ean": "7891000011119",
+      "preco": 27.9,
+      "qtd": 4
+    },
+    {
+      "nome": "Feijão carioca 1kg",
+      "codigo": "P0005",
+      "ean": "7891000011485",
+      "preco": 8.49,
+      "qtd": 1
+    },
+    {
+      "nome": "Óleo de soja 900ml",
+      "codigo": "P0006",
+      "ean": "7891000011850",
+      "preco": 6.99,
+      "qtd": 2
+    },
+    {
+      "nome": "Macarrão espaguete",
+      "codigo": "P0007",
+      "ean": "7891000012222",
+      "preco": 4.29,
+      "qtd": 3
+    },
+    {
+      "nome": "Molho de tomate",
+      "codigo": "P0008",
+      "ean": "7891000012598",
+      "preco": 3.19,
+      "qtd": 4
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "title": "Etiquetas de produto",
+  "page": {
+    "size": "A4",
+    "margin": "8mm 6mm"
+  },
+  "fields": [
+    {
+      "name": "nome",
+      "type": "string"
+    },
+    {
+      "name": "codigo",
+      "type": "string"
+    },
+    {
+      "name": "ean",
+      "type": "string"
+    },
+    {
+      "name": "preco",
+      "type": "money"
+    },
+    {
+      "name": "qtd",
+      "type": "integer"
+    }
+  ],
+  "body": [
+    {
+      "type": "labels",
+      "columns": 3,
+      "rowsPerPage": 7,
+      "width": "63.5mm",
+      "height": "37mm",
+      "gap": "2.5mm",
+      "padding": "2.5mm",
+      "border": true,
+      "copies": "${qtd}",
+      "sortBy": "nome",
+      "content": [
+        {
+          "type": "text",
+          "value": "${nome}",
+          "style": {
+            "bold": true,
+            "size": 9
+          }
+        },
+        {
+          "type": "row",
+          "columns": [
+            {
+              "width": "55%",
+              "content": [
+                {
+                  "type": "text",
+                  "value": "${format(preco, 'currency')}",
+                  "style": {
+                    "bold": true,
+                    "size": 15
+                  }
+                },
+                {
+                  "type": "text",
+                  "value": "cód. ${codigo}",
+                  "style": {
+                    "size": 7,
+                    "color": "#666"
+                  }
+                }
+              ]
+            },
+            {
+              "width": "45%",
+              "align": "right",
+              "content": [
+                {
+                  "type": "barcode",
+                  "format": "qr",
+                  "value": "https://loja.exemplo.com/p/${codigo}",
+                  "width": "15mm"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "barcode",
+          "format": "ean13",
+          "value": "${ean}",
+          "width": "45mm",
+          "height": "8mm",
+          "showText": true
+        }
+      ]
+    }
+  ]
+}

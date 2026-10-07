@@ -30,6 +30,7 @@ public final class FieldCheck {
 
     private static final Set<String> AGGREGATES = Set.of("sum", "avg", "min", "max", "count", "first", "last", "join");
     private static final Set<String> BARE_PROPS = Set.of("visible", "source", "sortBy", "by", "data");
+    private static final List<String> RESERVED = List.of("rows", "data", "page", "pages", "param", "params", "index", "item");
     private static final String[] BANDS = {"firstPageHeader", "pageHeader", "body", "pageFooter"};
 
     /**
@@ -251,6 +252,15 @@ public final class FieldCheck {
         }
 
         void run() {
+            JsonNode ps = root.get("parameters");
+            if (ps != null && ps.isArray()) {
+                for (int i = 0; i < ps.size(); i++) {
+                    String n = ps.get(i).path("name").asText("");
+                    if (RESERVED.contains(n)) {
+                        problem(List.of("parameters", i, "name"), -1, -1, "'" + n + "' é nome reservado (" + String.join(", ", RESERVED) + "); escolha outro");
+                    }
+                }
+            }
             JsonNode title = root.get("title");
             if (title != null && title.isTextual()) template(title.asText(), List.of("title"), rootCtx);
             JsonNode wm = root.get("watermark");
@@ -258,6 +268,15 @@ public final class FieldCheck {
                 template(wm, "text", List.of("watermark"), rootCtx);
                 template(wm, "src", List.of("watermark"), rootCtx);
                 bare(wm, "visible", List.of("watermark"), rootCtx);
+            }
+            JsonNode md = root.get("metadata");
+            if (md != null && md.isObject()) {
+                for (String k : List.of("author", "subject", "keywords", "creator")) template(md, k, List.of("metadata"), rootCtx);
+            }
+            JsonNode sec = root.get("security");
+            if (sec != null && sec.isObject()) {
+                template(sec, "userPassword", List.of("security"), rootCtx);
+                template(sec, "ownerPassword", List.of("security"), rootCtx);
             }
             for (String band : BANDS) elements(root.get(band), List.of(band), rootCtx);
         }
@@ -281,7 +300,7 @@ public final class FieldCheck {
             ctxByPath.put(pathString(path), ctx);
             bare(el, "visible", path, ctx);
             switch (el.path("type").asText("")) {
-                case "text", "html" -> template(el, "value", path, ctx);
+                case "text", "html", "markdown" -> template(el, "value", path, ctx);
                 case "image" -> template(el, "src", path, ctx);
                 case "barcode" -> template(el, "value", path, ctx);
                 case "include" -> {
@@ -309,6 +328,19 @@ public final class FieldCheck {
                 case "box" -> elements(el.get("content"), append(path, "content"), ctx);
                 case "table" -> table(el, path, ctx);
                 case "list" -> list(el, path, ctx);
+                case "chart" -> chart(el, path, ctx);
+                case "labels" -> {
+                    Ctx item = itemCtx(el, path, ctx, "item");
+                    sortBy(el, path, item);
+                    template(el, "copies", path, item);
+                    elements(el.get("content"), append(path, "content"), item);
+                }
+                case "crosstab" -> {
+                    Ctx item = itemCtx(el, path, ctx, null);
+                    for (String k : List.of("rows", "columns", "value")) template(el, k, path, item);
+                    template(el, "rowHeader", path, ctx);
+                    template(el, "totalLabel", path, ctx);
+                }
                 default -> { }
             }
         }
@@ -338,6 +370,23 @@ public final class FieldCheck {
                     template(c, "value", cp, item);
                     JsonNode total = c.get("total");
                     if (total != null && total.isTextual() && total.asText().contains("${")) template(c, "total", cp, item);
+                }
+            }
+        }
+
+        void chart(JsonNode el, List<Object> path, Ctx ctx) {
+            Ctx item = itemCtx(el, path, ctx, null);
+            sortBy(el, path, item);
+            template(el, "title", path, ctx);
+            template(el, "label", path, item);
+            template(el, "value", path, item);
+            JsonNode series = el.get("series");
+            if (series != null && series.isArray()) {
+                for (int i = 0; i < series.size(); i++) {
+                    List<Object> sp = append(path, "series", i);
+                    ctxByPath.put(pathString(sp), item);
+                    template(series.get(i), "name", sp, ctx);
+                    template(series.get(i), "value", sp, item);
                 }
             }
         }

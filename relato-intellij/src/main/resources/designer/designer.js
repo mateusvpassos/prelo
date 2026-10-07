@@ -27,12 +27,18 @@
     html: { label: 'HTML', icon: '<>', make: () => ({ type: 'html', value: '<b>HTML</b>' }) },
     barcode: { label: 'Código de barras / QR', icon: '▤', make: () => ({ type: 'barcode', value: '${codigo}', format: 'qr', width: '25mm' }) },
     include: { label: 'Sub-relatório', icon: '⎘', make: () => ({ type: 'include', template: 'outro-relatorio' }) },
+    chart: { label: 'Gráfico', icon: '◔', make: () => ({ type: 'chart', chartType: 'bar', title: 'Gráfico', label: '${' + (firstTextField() || 'categoria') + '}', value: '${' + (firstNumberField() || 'valor') + '}', height: '70mm' }) },
+    crosstab: { label: 'Tabela cruzada', icon: '⊠', make: () => ({ type: 'crosstab', rows: '${' + (firstTextField() || 'linha') + '}', columns: '${coluna}', value: '${' + (firstNumberField() || 'valor') + '}' }) },
+    labels: { label: 'Etiquetas / crachás', icon: '▭', make: () => ({ type: 'labels', columns: 3, rowsPerPage: 7, width: '63mm', height: '38mm', border: true, content: [{ type: 'text', value: '${' + (firstTextField() || 'nome') + '}', style: { bold: true } }] }) },
+    markdown: { label: 'Texto formatado', icon: 'M↓', make: () => ({ type: 'markdown', value: '## Título\n\nTexto com **negrito** e *itálico*.\n\n- item 1\n- item 2' }) },
   };
 
   const SNIPPETS = [
     { label: 'Título', icon: 'H', el: () => ({ type: 'text', value: 'Título do relatório', style: { bold: true, size: 14 } }) },
     { label: 'Página X de Y', icon: '#', el: () => ({ type: 'text', value: 'Página ${page} de ${pages}', align: 'right', style: { size: 8 } }) },
     { label: 'Data de emissão', icon: '◷', el: () => ({ type: 'text', value: 'Emitido em ${now()}', style: { size: 8, color: '#777' } }) },
+    { label: 'QR Pix', icon: '◫', el: () => ({ type: 'barcode', format: 'qr', value: "${pix('chave@pix', valor, 'NOME', 'CIDADE', txid)}", width: '35mm' }) },
+    { label: 'Boleto (ITF)', icon: '▥', el: () => ({ type: 'barcode', format: 'itf', value: '${boleto(linhaDigitavel)}', width: '103mm', height: '13mm' }) },
   ];
 
   const LABELS = {
@@ -46,7 +52,11 @@
     page: 'Página', size: 'Tamanho', orientation: 'Orientação', margin: 'Margens', css: 'CSS extra', parameters: 'Parâmetros',
     fields: 'Campos dos dados', dataClass: 'Classe dos dados', watermark: "Marca d'água", text: 'Texto', opacity: 'Opacidade (0 a 1)',
     angle: 'Ângulo', pageTotals: 'A transportar (total por página)', carryLabel: 'Rótulo "a transportar"', broughtLabel: 'Rótulo "transporte"',
-    template: 'Template', data: 'Dados', params: 'Parâmetros', showText: 'Mostrar o texto abaixo', name: 'Nome', type: 'Tipo', default: 'Valor padrão', sample: 'Valor de exemplo',
+    template: 'Template', data: 'Dados', chartType: 'Tipo de gráfico', series: 'Séries', colors: 'Cores', legend: 'Legenda',
+    showValues: 'Mostrar valores', limit: 'Máximo de categorias', rowsPerPage: 'Linhas por folha', copies: 'Cópias por item', border: 'Linha de corte',
+    padding: 'Margem interna', rowHeader: 'Título das linhas', aggregate: 'Agregação', totals: 'Totais', sortColumns: 'Ordem das colunas',
+    rows: 'Linhas', security: 'Proteção do PDF', userPassword: 'Senha para abrir', ownerPassword: 'Senha do dono', allowPrint: 'Permitir imprimir',
+    allowCopy: 'Permitir copiar', allowModify: 'Permitir alterar', metadata: 'Propriedades do PDF', author: 'Autor', subject: 'Assunto', keywords: 'Palavras-chave', creator: 'Criador', params: 'Parâmetros', showText: 'Mostrar o texto abaixo', name: 'Nome', type: 'Tipo', default: 'Valor padrão', sample: 'Valor de exemplo',
   };
 
   const S = {
@@ -177,6 +187,7 @@
       case 'row': return (el.columns || []).map((c, i) => ({ path: ['columns', i, 'content'] }));
       case 'box': return [{ path: ['content'] }];
       case 'list': return [{ path: ['header'] }, { path: ['content'] }, { path: ['footer'] }];
+      case 'labels': return [{ path: ['content'] }];
       default: return [];
     }
   }
@@ -426,6 +437,18 @@
   function firstListField() {
     const f = (S.model?.fields || []).find((x) => x.type === 'list');
     return f ? f.name : null;
+  }
+
+  const NUMERIC = ['money', 'decimal', 'number', 'integer'];
+
+  function firstTextField() {
+    const f = simpleFields().find((x) => !NUMERIC.includes(x.field.type) && x.field.type !== 'boolean');
+    return f ? f.path : null;
+  }
+
+  function firstNumberField() {
+    const f = simpleFields().find((x) => NUMERIC.includes(x.field.type));
+    return f ? f.path : null;
   }
 
   function formatFor(type) {
@@ -707,9 +730,85 @@
       }
       case 'include':
         return `<div class="r-include" style="${css}">⎘ sub-relatório <b>${esc(el.template || '?')}</b>${el.data ? ' · dados: <span class="chip">' + esc(el.data) + '</span>' : ''}</div>`;
+      case 'chart':
+        return chart(el, css);
+      case 'crosstab': {
+        const tot = el.totals === false ? '' : '<th>' + esc(el.totalLabel || 'Total') + '</th>';
+        const head = `<tr><th>${esc(el.rowHeader || '')}</th><th colspan="2">${chips(el.columns || '?')} →</th>${tot}</tr>`;
+        const cell = `<td>${esc(el.aggregate || 'sum')}(${chips(el.value || '1')})</td>`;
+        const row = `<tr><td>${chips(el.rows || '?')}</td>${cell}${cell}${el.totals === false ? '' : '<td>Σ</td>'}</tr>`;
+        return `<table class="r-table r-cross${el.grid ? ' grid' : ''}" style="${css}">${head}${row}${row}</table>`;
+      }
+      case 'labels': {
+        const n = Math.max(1, el.columns || 2);
+        const w = esc(el.width || '90mm'), hh = esc(el.height || '45mm');
+        let h = `<div class="r-labels-src">${n} por linha${el.rowsPerPage ? ' · ' + el.rowsPerPage + ' linhas por folha' : ''} · ${w} × ${hh}`
+          + `${el.source && el.source !== 'rows' ? ' · fonte: <span class="chip">' + esc(el.source) + '</span>' : ''}${el.copies ? ' · cópias: ' + chips(String(el.copies)) : ''}</div>`;
+        h += `<div class="r-labels" style="${css}">`;
+        h += `<div class="r-label${el.border ? ' cut' : ''}" style="width:${w};min-height:${hh};padding:${esc(el.padding || '3mm')}">${zone(path.concat('content'), el.content || [], 'Arraste o conteúdo da etiqueta')}</div>`;
+        for (let i = 1; i < Math.min(n, 4); i++) h += `<div class="r-label ghost${el.border ? ' cut' : ''}" style="width:${w};min-height:${hh}"></div>`;
+        return h + '</div>';
+      }
+      case 'markdown':
+        return `<div class="r-md" style="${el.align ? 'text-align:' + esc(el.align) + ';' : ''}${css}">${mdPreview(el.value || '')}</div>`;
       default:
         return `<div class="r-html">tipo desconhecido: ${esc(el.type)}</div>`;
     }
+  }
+
+  /** Esboço do gráfico com valores fictícios; o real aparece na pré-visualização. */
+  function chart(el, css) {
+    const t = el.chartType || 'bar';
+    const pal = (el.colors && el.colors.length ? el.colors : ['#4472c4', '#ed7d31', '#a5a5a5', '#ffc000', '#5b9bd5', '#70ad47']).map(esc);
+    const vals = [62, 88, 45, 74, 56];
+    let svg = '';
+    if (t === 'pie' || t === 'donut') {
+      let a0 = -Math.PI / 2;
+      const tot = vals.reduce((x, y) => x + y, 0);
+      const pt = (a) => `${150 + 50 * Math.cos(a)},${60 + 50 * Math.sin(a)}`;
+      vals.forEach((v, i) => {
+        const a1 = a0 + (v / tot) * Math.PI * 2;
+        svg += `<path d="M150,60 L${pt(a0)} A50,50 0 ${a1 - a0 > Math.PI ? 1 : 0},1 ${pt(a1)} Z" fill="${pal[i % pal.length]}"/>`;
+        a0 = a1;
+      });
+      if (t === 'donut') svg += '<circle cx="150" cy="60" r="26" fill="#fff"/>';
+    } else if (t === 'line' || t === 'area') {
+      const pts = vals.map((v, i) => `${20 + i * 65},${110 - v}`).join(' ');
+      if (t === 'area') svg += `<polygon points="20,110 ${pts} 280,110" fill="${pal[0]}" opacity=".35"/>`;
+      svg += `<polyline points="${pts}" fill="none" stroke="${pal[0]}" stroke-width="2.5"/>`;
+    } else if (t === 'hbar') {
+      vals.forEach((v, i) => { svg += `<rect x="20" y="${8 + i * 22}" width="${v * 2.8}" height="15" fill="${pal[0]}"/>`; });
+    } else {
+      vals.forEach((v, i) => { svg += `<rect x="${30 + i * 52}" y="${110 - v}" width="32" height="${v}" fill="${pal[0]}"/>`; });
+    }
+    if (t !== 'pie' && t !== 'donut') svg += '<line x1="15" y1="110" x2="290" y2="110" stroke="#999"/>';
+    const series = (el.series || []).length ? el.series.map((x) => chips(x.name || x.value || '')).join(', ') : chips(el.value || '');
+    const wrap = el.align ? `text-align:${esc(el.align)};` : '';
+    return `<div class="r-chart" style="${wrap}${css}">${el.title ? '<div class="r-chart-t">' + chips(el.title) + '</div>' : ''}`
+      + `<svg viewBox="0 0 300 120" style="width:${esc(el.width || '100%')};max-width:100%;height:auto">${svg}</svg>`
+      + `<div class="r-chart-v">${esc(t)} · ${chips(el.label || '')} → ${series}</div></div>`;
+  }
+
+  /** Markdown simplificado para o canvas (mesma ideia do renderizador). */
+  function mdPreview(src) {
+    const inl = (x) => chips(x).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*(?!\s)(.+?)\*/g, '$1<i>$2</i>');
+    let out = '', list = null;
+    for (const raw of String(src).split('\n')) {
+      const line = raw.trimEnd();
+      const h = /^(#{1,6})\s+(.*)$/.exec(line), li = /^\s*(?:[-*+]|\d+[.)])\s+(.*)$/.exec(line);
+      if (list && !li) { out += `</${list}>`; list = null; }
+      if (!line.trim()) continue;
+      if (h) out += `<div class="h${h[1].length}">${inl(h[2])}</div>`;
+      else if (li) {
+        const tag = /^\s*\d/.test(line) ? 'ol' : 'ul';
+        if (!list) { out += `<${tag}>`; list = tag; }
+        out += `<li>${inl(li[1])}</li>`;
+      } else if (line.startsWith('>')) out += `<blockquote>${inl(line.slice(1).trim())}</blockquote>`;
+      else if (/^\s*(---+|\*\*\*+)\s*$/.test(line)) out += '<hr>';
+      else out += `<p>${inl(line)}</p>`;
+    }
+    if (list) out += `</${list}>`;
+    return out || '&nbsp;';
   }
 
   function table(el, path, css) {

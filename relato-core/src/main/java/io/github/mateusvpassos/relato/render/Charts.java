@@ -149,7 +149,11 @@ final class Charts {
         grid(g, ax, left, top, plotW, plotH, true, fmt);
         int n = cats.size();
         if (n == 0) return;
-        double step = n > 1 ? plotW / (n - 1) : 0;
+        // recuo nas pontas para o primeiro/último rótulo e valor não serem cortados
+        double pad = n > 1 ? Math.min(plotW * 0.06, 18) : 0;
+        double step = n > 1 ? (plotW - 2 * pad) / (n - 1) : 0;
+        left += pad;
+        plotW -= 2 * pad;
         for (Series s : series) {
             Path2D.Double p = new Path2D.Double();
             for (int i = 0; i < n; i++) {

@@ -183,7 +183,8 @@ final class HtmlRenderer {
                 for (int i = 0; i < cols.size(); i++) {
                     Node.ColSpec c = cols.get(i);
                     Node.Cell cell = i < d.cells().size() ? d.cells().get(i) : null;
-                    String css = Css.join(firstData ? width(c) : "", align(aligns[i], cell == null ? null : cell.raw()), c.css());
+                    String css = Css.join(firstData ? width(c) : "", align(aligns[i], cell == null ? null : cell.raw()), c.css(),
+                            cell == null ? null : cell.css());
                     sb.append("<td").append(style(css)).append('>').append(cell == null ? "" : escape(cell.text())).append("</td>");
                 }
                 sb.append("</tr>\n");

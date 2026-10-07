@@ -1,0 +1,637 @@
+{
+  "params": {
+    "ano": "2026"
+  },
+  "data": [
+    {
+      "regiao": "Sul",
+      "mes": "01/2026",
+      "produto": "Açúcar",
+      "receita": 1384.04,
+      "custo": 870.51
+    },
+    {
+      "regiao": "Sul",
+      "mes": "01/2026",
+      "produto": "Macarrão",
+      "receita": 921.12,
+      "custo": 605.34
+    },
+    {
+      "regiao": "Sul",
+      "mes": "01/2026",
+      "produto": "Café",
+      "receita": 1454.36,
+      "custo": 1064.51
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "01/2026",
+      "produto": "Café",
+      "receita": 1921.11,
+      "custo": 1223.23
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "01/2026",
+      "produto": "Café",
+      "receita": 1531.77,
+      "custo": 1011.29
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "01/2026",
+      "produto": "Feijão",
+      "receita": 1502.89,
+      "custo": 863.8
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "01/2026",
+      "produto": "Óleo",
+      "receita": 850.53,
+      "custo": 566.96
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "01/2026",
+      "produto": "Feijão",
+      "receita": 660.75,
+      "custo": 415.83
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "01/2026",
+      "produto": "Café",
+      "receita": 1736.08,
+      "custo": 1148.13
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "01/2026",
+      "produto": "Arroz",
+      "receita": 957.36,
+      "custo": 554.17
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "01/2026",
+      "produto": "Leite",
+      "receita": 934.1,
+      "custo": 618.42
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "01/2026",
+      "produto": "Café",
+      "receita": 1787.19,
+      "custo": 1190.84
+    },
+    {
+      "regiao": "Norte",
+      "mes": "01/2026",
+      "produto": "Leite",
+      "receita": 861.02,
+      "custo": 490.34
+    },
+    {
+      "regiao": "Norte",
+      "mes": "01/2026",
+      "produto": "Feijão",
+      "receita": 916.36,
+      "custo": 514.92
+    },
+    {
+      "regiao": "Norte",
+      "mes": "01/2026",
+      "produto": "Óleo",
+      "receita": 533.7,
+      "custo": 350.29
+    },
+    {
+      "regiao": "Sul",
+      "mes": "02/2026",
+      "produto": "Arroz",
+      "receita": 2247.92,
+      "custo": 1499.62
+    },
+    {
+      "regiao": "Sul",
+      "mes": "02/2026",
+      "produto": "Leite",
+      "receita": 1677.6,
+      "custo": 1006.03
+    },
+    {
+      "regiao": "Sul",
+      "mes": "02/2026",
+      "produto": "Macarrão",
+      "receita": 1196.39,
+      "custo": 716.42
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "02/2026",
+      "produto": "Feijão",
+      "receita": 3025.58,
+      "custo": 1963.67
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "02/2026",
+      "produto": "Arroz",
+      "receita": 2375.23,
+      "custo": 1443.16
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "02/2026",
+      "produto": "Café",
+      "receita": 4168.17,
+      "custo": 2719.26
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "02/2026",
+      "produto": "Leite",
+      "receita": 819.23,
+      "custo": 475.48
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "02/2026",
+      "produto": "Café",
+      "receita": 1218.4,
+      "custo": 904.54
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "02/2026",
+      "produto": "Feijão",
+      "receita": 711.63,
+      "custo": 472.95
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "02/2026",
+      "produto": "Leite",
+      "receita": 2178.76,
+      "custo": 1346.53
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "02/2026",
+      "produto": "Arroz",
+      "receita": 1346.68,
+      "custo": 896.86
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "02/2026",
+      "produto": "Macarrão",
+      "receita": 1514.63,
+      "custo": 861.4
+    },
+    {
+      "regiao": "Norte",
+      "mes": "02/2026",
+      "produto": "Óleo",
+      "receita": 609.79,
+      "custo": 416.38
+    },
+    {
+      "regiao": "Norte",
+      "mes": "02/2026",
+      "produto": "Óleo",
+      "receita": 444.05,
+      "custo": 271.72
+    },
+    {
+      "regiao": "Norte",
+      "mes": "02/2026",
+      "produto": "Óleo",
+      "receita": 853.73,
+      "custo": 609.89
+    },
+    {
+      "regiao": "Sul",
+      "mes": "03/2026",
+      "produto": "Arroz",
+      "receita": 1443.66,
+      "custo": 1050.13
+    },
+    {
+      "regiao": "Sul",
+      "mes": "03/2026",
+      "produto": "Arroz",
+      "receita": 1558.49,
+      "custo": 967.97
+    },
+    {
+      "regiao": "Sul",
+      "mes": "03/2026",
+      "produto": "Arroz",
+      "receita": 2044.09,
+      "custo": 1148.35
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "03/2026",
+      "produto": "Açúcar",
+      "receita": 3733.68,
+      "custo": 2604.89
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "03/2026",
+      "produto": "Macarrão",
+      "receita": 2643.41,
+      "custo": 1716.37
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "03/2026",
+      "produto": "Arroz",
+      "receita": 1961.78,
+      "custo": 1294.56
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "03/2026",
+      "produto": "Macarrão",
+      "receita": 1781.8,
+      "custo": 1133.41
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "03/2026",
+      "produto": "Óleo",
+      "receita": 1352.68,
+      "custo": 856.33
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "03/2026",
+      "produto": "Arroz",
+      "receita": 1106.1,
+      "custo": 820.22
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "03/2026",
+      "produto": "Açúcar",
+      "receita": 1077.93,
+      "custo": 625.48
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "03/2026",
+      "produto": "Café",
+      "receita": 1918.5,
+      "custo": 1241.26
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "03/2026",
+      "produto": "Leite",
+      "receita": 1803.59,
+      "custo": 1093.67
+    },
+    {
+      "regiao": "Norte",
+      "mes": "03/2026",
+      "produto": "Feijão",
+      "receita": 534.62,
+      "custo": 333.52
+    },
+    {
+      "regiao": "Norte",
+      "mes": "03/2026",
+      "produto": "Açúcar",
+      "receita": 882.93,
+      "custo": 607.54
+    },
+    {
+      "regiao": "Norte",
+      "mes": "03/2026",
+      "produto": "Feijão",
+      "receita": 840.83,
+      "custo": 572.6
+    },
+    {
+      "regiao": "Sul",
+      "mes": "04/2026",
+      "produto": "Arroz",
+      "receita": 2380.39,
+      "custo": 1737.46
+    },
+    {
+      "regiao": "Sul",
+      "mes": "04/2026",
+      "produto": "Macarrão",
+      "receita": 2457.54,
+      "custo": 1686.16
+    },
+    {
+      "regiao": "Sul",
+      "mes": "04/2026",
+      "produto": "Arroz",
+      "receita": 2033.8,
+      "custo": 1280.88
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "04/2026",
+      "produto": "Óleo",
+      "receita": 1854.07,
+      "custo": 1168.23
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "04/2026",
+      "produto": "Açúcar",
+      "receita": 2121.55,
+      "custo": 1353.81
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "04/2026",
+      "produto": "Feijão",
+      "receita": 1873.7,
+      "custo": 1050.24
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "04/2026",
+      "produto": "Açúcar",
+      "receita": 672.31,
+      "custo": 441.93
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "04/2026",
+      "produto": "Feijão",
+      "receita": 1947.39,
+      "custo": 1081.0
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "04/2026",
+      "produto": "Feijão",
+      "receita": 1847.1,
+      "custo": 1154.89
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "04/2026",
+      "produto": "Leite",
+      "receita": 1960.26,
+      "custo": 1314.27
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "04/2026",
+      "produto": "Café",
+      "receita": 1683.33,
+      "custo": 1211.64
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "04/2026",
+      "produto": "Arroz",
+      "receita": 2580.08,
+      "custo": 1666.94
+    },
+    {
+      "regiao": "Norte",
+      "mes": "04/2026",
+      "produto": "Açúcar",
+      "receita": 701.44,
+      "custo": 400.13
+    },
+    {
+      "regiao": "Norte",
+      "mes": "04/2026",
+      "produto": "Leite",
+      "receita": 728.04,
+      "custo": 470.11
+    },
+    {
+      "regiao": "Norte",
+      "mes": "04/2026",
+      "produto": "Feijão",
+      "receita": 1029.94,
+      "custo": 571.22
+    },
+    {
+      "regiao": "Sul",
+      "mes": "05/2026",
+      "produto": "Feijão",
+      "receita": 2901.97,
+      "custo": 1806.04
+    },
+    {
+      "regiao": "Sul",
+      "mes": "05/2026",
+      "produto": "Café",
+      "receita": 2380.14,
+      "custo": 1669.97
+    },
+    {
+      "regiao": "Sul",
+      "mes": "05/2026",
+      "produto": "Óleo",
+      "receita": 1596.18,
+      "custo": 1153.5
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "05/2026",
+      "produto": "Leite",
+      "receita": 3827.83,
+      "custo": 2502.17
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "05/2026",
+      "produto": "Leite",
+      "receita": 4506.43,
+      "custo": 3174.27
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "05/2026",
+      "produto": "Macarrão",
+      "receita": 3304.3,
+      "custo": 2149.58
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "05/2026",
+      "produto": "Feijão",
+      "receita": 1591.02,
+      "custo": 1133.29
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "05/2026",
+      "produto": "Macarrão",
+      "receita": 2078.9,
+      "custo": 1224.53
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "05/2026",
+      "produto": "Arroz",
+      "receita": 1035.14,
+      "custo": 722.5
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "05/2026",
+      "produto": "Feijão",
+      "receita": 1308.13,
+      "custo": 848.4
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "05/2026",
+      "produto": "Café",
+      "receita": 2215.81,
+      "custo": 1568.84
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "05/2026",
+      "produto": "Açúcar",
+      "receita": 1750.03,
+      "custo": 1204.9
+    },
+    {
+      "regiao": "Norte",
+      "mes": "05/2026",
+      "produto": "Arroz",
+      "receita": 1310.86,
+      "custo": 932.96
+    },
+    {
+      "regiao": "Norte",
+      "mes": "05/2026",
+      "produto": "Leite",
+      "receita": 1100.82,
+      "custo": 815.71
+    },
+    {
+      "regiao": "Norte",
+      "mes": "05/2026",
+      "produto": "Açúcar",
+      "receita": 778.17,
+      "custo": 443.89
+    },
+    {
+      "regiao": "Sul",
+      "mes": "06/2026",
+      "produto": "Leite",
+      "receita": 2017.77,
+      "custo": 1192.25
+    },
+    {
+      "regiao": "Sul",
+      "mes": "06/2026",
+      "produto": "Feijão",
+      "receita": 2338.06,
+      "custo": 1678.93
+    },
+    {
+      "regiao": "Sul",
+      "mes": "06/2026",
+      "produto": "Óleo",
+      "receita": 2037.3,
+      "custo": 1260.68
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "06/2026",
+      "produto": "Macarrão",
+      "receita": 3804.35,
+      "custo": 2595.01
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "06/2026",
+      "produto": "Macarrão",
+      "receita": 4691.74,
+      "custo": 3248.09
+    },
+    {
+      "regiao": "Sudeste",
+      "mes": "06/2026",
+      "produto": "Açúcar",
+      "receita": 2327.33,
+      "custo": 1482.01
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "06/2026",
+      "produto": "Café",
+      "receita": 1653.79,
+      "custo": 1174.46
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "06/2026",
+      "produto": "Arroz",
+      "receita": 2142.73,
+      "custo": 1376.99
+    },
+    {
+      "regiao": "Centro-Oeste",
+      "mes": "06/2026",
+      "produto": "Café",
+      "receita": 1810.32,
+      "custo": 1258.1
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "06/2026",
+      "produto": "Açúcar",
+      "receita": 1254.25,
+      "custo": 696.75
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "06/2026",
+      "produto": "Arroz",
+      "receita": 2042.0,
+      "custo": 1452.48
+    },
+    {
+      "regiao": "Nordeste",
+      "mes": "06/2026",
+      "produto": "Macarrão",
+      "receita": 1209.64,
+      "custo": 809.46
+    },
+    {
+      "regiao": "Norte",
+      "mes": "06/2026",
+      "produto": "Leite",
+      "receita": 912.0,
+      "custo": 530.04
+    },
+    {
+      "regiao": "Norte",
+      "mes": "06/2026",
+      "produto": "Café",
+      "receita": 981.2,
+      "custo": 542.46
+    },
+    {
+      "regiao": "Norte",
+      "mes": "06/2026",
+      "produto": "Óleo",
+      "receita": 1376.75,
+      "custo": 785.51
+    }
+  ]
+}

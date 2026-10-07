@@ -103,6 +103,52 @@
       },
       "description": "Campos dos dados (documentação e dados de exemplo no preview)."
     },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Proteção do PDF (AES-256).",
+      "properties": {
+        "userPassword": {
+          "type": "string",
+          "description": "Senha para abrir; aceita expressões. Ex.: ${cpf}"
+        },
+        "ownerPassword": {
+          "type": "string",
+          "description": "Senha do dono (permissões). Vazio = aleatória."
+        },
+        "allowPrint": {
+          "type": "boolean",
+          "default": true
+        },
+        "allowCopy": {
+          "type": "boolean",
+          "default": true
+        },
+        "allowModify": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Propriedades do PDF; aceitam expressões.",
+      "properties": {
+        "author": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "keywords": {
+          "type": "string"
+        },
+        "creator": {
+          "type": "string"
+        }
+      }
+    },
     "watermark": {
       "type": "object",
       "additionalProperties": false,
@@ -335,7 +381,11 @@
             "spacer",
             "pageBreak",
             "barcode",
-            "include"
+            "include",
+            "chart",
+            "labels",
+            "markdown",
+            "crosstab"
           ]
         }
       },
@@ -494,6 +544,54 @@
           },
           "then": {
             "$ref": "#/definitions/include"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "chart"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/chart"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "labels"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/labels"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "markdown"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/markdown"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "crosstab"
+              }
+            }
+          },
+          "then": {
+            "$ref": "#/definitions/crosstab"
           }
         }
       ]
@@ -989,6 +1087,263 @@
             "type": "string"
           },
           "description": "Parâmetros extras (valores com expressões)."
+        }
+      }
+    },
+    "chart": {
+      "additionalProperties": false,
+      "description": "Gráfico desenhado como imagem (PDF/HTML).",
+      "properties": {
+        "type": {},
+        "style": {
+          "$ref": "#/definitions/style"
+        },
+        "visible": {
+          "$ref": "#/definitions/visible"
+        },
+        "chartType": {
+          "enum": [
+            "bar",
+            "hbar",
+            "line",
+            "area",
+            "pie",
+            "donut"
+          ],
+          "default": "bar"
+        },
+        "source": {
+          "type": "string",
+          "description": "Coleção. Padrão: rows (dados do relatório)."
+        },
+        "label": {
+          "type": "string",
+          "description": "Categoria (eixo X / fatia). Ex.: ${regiao}. Itens com mesma categoria são somados."
+        },
+        "value": {
+          "type": "string",
+          "description": "Valor de série única. Ex.: ${total}"
+        },
+        "series": {
+          "type": "array",
+          "description": "Várias séries (barras agrupadas / várias linhas).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "width": {
+          "type": "string",
+          "default": "170mm"
+        },
+        "height": {
+          "type": "string",
+          "default": "70mm"
+        },
+        "colors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Paleta (hex)."
+        },
+        "legend": {
+          "type": "boolean"
+        },
+        "showValues": {
+          "type": "boolean"
+        },
+        "format": {
+          "$ref": "#/definitions/format"
+        },
+        "sortBy": {
+          "type": "string",
+          "description": "Ordena os itens antes de agrupar. Campo ou expressão; prefixo - = decrescente. Ex.: -total"
+        },
+        "limit": {
+          "type": "integer",
+          "description": "Máximo de categorias; em pizza/rosca o resto vira Outros."
+        },
+        "align": {
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        }
+      }
+    },
+    "labels": {
+      "additionalProperties": false,
+      "description": "Grade de etiquetas, crachás ou cartões de tamanho fixo.",
+      "required": [
+        "content"
+      ],
+      "properties": {
+        "type": {},
+        "style": {
+          "$ref": "#/definitions/style"
+        },
+        "visible": {
+          "$ref": "#/definitions/visible"
+        },
+        "source": {
+          "type": "string",
+          "description": "Coleção. Padrão: rows (dados do relatório)."
+        },
+        "sortBy": {
+          "type": "string"
+        },
+        "columns": {
+          "type": "integer",
+          "default": 2
+        },
+        "rowsPerPage": {
+          "type": "integer",
+          "description": "Linhas por folha (folhas de etiqueta tipo Pimaco). 0 = contínuo."
+        },
+        "width": {
+          "type": "string",
+          "default": "90mm"
+        },
+        "height": {
+          "type": "string",
+          "default": "45mm"
+        },
+        "gap": {
+          "type": "string",
+          "default": "3mm"
+        },
+        "padding": {
+          "type": "string",
+          "default": "3mm"
+        },
+        "border": {
+          "type": "boolean",
+          "description": "Linha tracejada de corte."
+        },
+        "copies": {
+          "type": [
+            "string",
+            "integer"
+          ],
+          "description": "Cópias por item; aceita expressão. Ex.: ${qtd}"
+        },
+        "content": {
+          "$ref": "#/definitions/elements",
+          "description": "Conteúdo de cada etiqueta/crachá. Campos do item ficam visíveis direto; item e index também."
+        }
+      }
+    },
+    "markdown": {
+      "additionalProperties": false,
+      "description": "Texto longo formatado (contratos, cartas, certificados).",
+      "required": [
+        "value"
+      ],
+      "properties": {
+        "type": {},
+        "style": {
+          "$ref": "#/definitions/style"
+        },
+        "visible": {
+          "$ref": "#/definitions/visible"
+        },
+        "value": {
+          "type": "string",
+          "description": "Markdown (# título, **negrito**, *itálico*, listas, > citação, ---). Expressões ${...} são escapadas."
+        },
+        "align": {
+          "enum": [
+            "left",
+            "center",
+            "right",
+            "justify"
+          ]
+        }
+      }
+    },
+    "crosstab": {
+      "additionalProperties": false,
+      "description": "Tabela cruzada (pivot): linhas × colunas com totais.",
+      "properties": {
+        "type": {},
+        "style": {
+          "$ref": "#/definitions/style"
+        },
+        "visible": {
+          "$ref": "#/definitions/visible"
+        },
+        "source": {
+          "type": "string",
+          "description": "Coleção. Padrão: rows (dados do relatório)."
+        },
+        "rows": {
+          "type": "string",
+          "description": "Expressão das linhas. Ex.: ${regiao}"
+        },
+        "columns": {
+          "type": "string",
+          "description": "Expressão das colunas. Ex.: ${mes}"
+        },
+        "value": {
+          "type": "string",
+          "description": "Valor agregado. Ex.: ${valor}"
+        },
+        "aggregate": {
+          "enum": [
+            "sum",
+            "count",
+            "avg",
+            "min",
+            "max"
+          ],
+          "default": "sum"
+        },
+        "format": {
+          "$ref": "#/definitions/format"
+        },
+        "rowHeader": {
+          "type": "string"
+        },
+        "totalLabel": {
+          "type": "string",
+          "default": "Total"
+        },
+        "totals": {
+          "type": "boolean",
+          "default": true
+        },
+        "zebra": {
+          "type": "boolean"
+        },
+        "grid": {
+          "type": "boolean"
+        },
+        "sortColumns": {
+          "enum": [
+            "asc",
+            "desc",
+            "none"
+          ],
+          "default": "asc"
         }
       }
     }
