@@ -23,6 +23,10 @@ import java.util.List;
     @JsonSubTypes.Type(value = Element.PageBreak.class, name = "pageBreak"),
     @JsonSubTypes.Type(value = Element.Barcode.class, name = "barcode"),
     @JsonSubTypes.Type(value = Element.Include.class, name = "include"),
+    @JsonSubTypes.Type(value = Element.Chart.class, name = "chart"),
+    @JsonSubTypes.Type(value = Element.Labels.class, name = "labels"),
+    @JsonSubTypes.Type(value = Element.Markdown.class, name = "markdown"),
+    @JsonSubTypes.Type(value = Element.Crosstab.class, name = "crosstab"),
 })
 public sealed interface Element {
     Object style();
@@ -144,4 +148,64 @@ public sealed interface Element {
      * @param params   parâmetros extras (valores com expressões); os do relatório pai são herdados
      */
     record Include(String template, String data, java.util.Map<String, String> params, Object style, String visible) implements Element {}
+
+    /**
+     * Gráfico (imagem gerada no servidor, nítida no PDF).
+     *
+     * @param chartType bar (padrão), hbar, line, area, pie, donut
+     * @param source    coleção; padrão {@code rows}
+     * @param label     categoria de cada item (ex.: {@code ${regiao}}); itens com a mesma categoria são somados
+     * @param value     valor de cada item (ex.: {@code ${valor}}); ignorado se houver {@code series}
+     * @param series    várias séries: cada uma com nome, valor e cor
+     * @param colors    paleta (hex); padrão: paleta do relato
+     * @param format    formato dos rótulos de valor (ex.: currency)
+     */
+    record Chart(String chartType, String source, String label, String value, List<Series> series, String title,
+                 String width, String height, List<String> colors, Boolean legend, Boolean showValues, String format,
+                 String sortBy, Integer limit, String align, Object style, String visible) implements Element {
+        public Chart {
+            series = series == null ? List.of() : series;
+            colors = colors == null ? List.of() : colors;
+        }
+    }
+
+    record Series(String name, String value, String color) {}
+
+    /**
+     * Etiquetas, crachás, cartões: repete {@code content} em grade de tamanho fixo (ex.: folha de etiquetas).
+     *
+     * @param columns     etiquetas por linha (padrão 2)
+     * @param rowsPerPage linhas por folha (quebra de página a cada linhas × colunas); opcional
+     * @param width       largura de cada etiqueta (ex.: 63.5mm)
+     * @param height      altura de cada etiqueta (ex.: 38.1mm)
+     * @param gap         espaço entre etiquetas (ex.: 2.5mm)
+     * @param border      contorno (útil para recortar); padrão false
+     * @param padding     margem interna (ex.: 3mm)
+     * @param copies      cópias de cada item (expressão; ex.: {@code ${quantidade}})
+     */
+    record Labels(String source, String sortBy, Integer columns, Integer rowsPerPage, String width, String height, String gap,
+                  Boolean border, String padding, String copies, List<Element> content, Object style, String visible) implements Element {
+        public Labels {
+            content = content == null ? List.of() : content;
+        }
+    }
+
+    /**
+     * Texto rico em Markdown (contratos, cartas, certificados): parágrafos, **negrito**, *itálico*, títulos (#),
+     * listas (- e 1.), citação (>), linha (---). Expressões ${...} são resolvidas antes e escapadas.
+     */
+    record Markdown(String value, String align, Object style, String visible) implements Element {}
+
+    /**
+     * Tabela cruzada (pivot): linhas × colunas com valor agregado em cada célula.
+     *
+     * @param rows      expressão da categoria das linhas (ex.: {@code ${regiao}})
+     * @param columns   expressão da categoria das colunas (ex.: {@code ${format(data, 'MM/yyyy')}})
+     * @param value     expressão somada (ignorada em count)
+     * @param aggregate sum (padrão), count, avg, min, max
+     * @param totals    linha e coluna de total (padrão true)
+     */
+    record Crosstab(String source, String rows, String columns, String value, String aggregate, String format,
+                    String rowHeader, String totalLabel, Boolean totals, Boolean zebra, Boolean grid, String sortColumns,
+                    Object style, String visible) implements Element {}
 }

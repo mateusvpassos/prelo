@@ -111,6 +111,8 @@ final class HtmlRenderer {
         else if (n instanceof Node.Line l) sb.append("<div class=\"rl-line\"").append(style(l.css())).append("></div>\n");
         else if (n instanceof Node.Spacer s) sb.append("<div class=\"rl-spacer\"").append(style(Css.join("height:" + s.height(), s.css()))).append("></div>\n");
         else if (n instanceof Node.PageBreak) sb.append("<div class=\"rl-break\"></div>\n");
+        else if (n instanceof Node.RichText rt) sb.append("<div class=\"rl-md\"").append(style(rt.css())).append('>').append(rt.html()).append("</div>\n");
+        else if (n instanceof Node.Labels l) labels(l);
     }
 
     private void text(Node.Text t) {
@@ -230,6 +232,36 @@ final class HtmlRenderer {
         sb.append("</tbody></table>\n");
     }
 
+    /** Grade de etiquetas: tabela de células de tamanho fixo; uma tabela por folha quando há linhas por página. */
+    private void labels(Node.Labels l) {
+        int perPage = l.rowsPerPage() > 0 ? l.rowsPerPage() * l.columns() : Integer.MAX_VALUE;
+        int total = l.items().size();
+        for (int start = 0; start < Math.max(total, 1); start += perPage) {
+            int end = Math.min(total, start + perPage);
+            boolean breakAfter = end < total && l.rowsPerPage() > 0;
+            sb.append("<table class=\"rl-labels\"").append(style(Css.join("border-spacing:" + l.gap(), l.css(),
+                    breakAfter ? "page-break-after:always" : ""))).append(">\n");
+            for (int i = start; i < end; i += l.columns()) {
+                sb.append("<tr>");
+                for (int c = 0; c < l.columns(); c++) {
+                    int k = i + c;
+                    String cell = Css.join("width:" + l.width(), "height:" + l.height(), "max-width:" + l.width(), "padding:0",
+                            l.border() ? "border:0.5pt dashed #9aa0a6" : "");
+                    sb.append("<td class=\"rl-label\"").append(style(cell)).append('>');
+                    if (k < end) {
+                        sb.append("<div class=\"rl-label-in\"").append(style("height:" + l.height() + ";padding:" + l.padding() + ";box-sizing:border-box;overflow:hidden")).append('>');
+                        nodes(l.items().get(k));
+                        sb.append("</div>");
+                    }
+                    sb.append("</td>");
+                }
+                sb.append("</tr>\n");
+            }
+            sb.append("</table>\n");
+            if (total == 0) break;
+        }
+    }
+
     private void list(Node.ListBlock l) {
         sb.append("<div class=\"rl-list\"").append(style(l.css())).append(">\n");
         nodes(l.header());
@@ -323,6 +355,18 @@ final class HtmlRenderer {
     private static final String BASE_CSS = """
             body { font-family: sans-serif; font-size: 9pt; color: #222; margin: 0; line-height: 1.25; }
             .rl-page-header { position: running(rlHeader); }
+            table.rl-labels { border-collapse: separate; table-layout: fixed; margin: 0; }
+            table.rl-labels tr { page-break-inside: avoid; }
+            td.rl-label { vertical-align: top; overflow: hidden; }
+            .rl-md p { margin: 0 0 6pt 0; text-align: inherit; }
+            .rl-md h1 { font-size: 16pt; margin: 8pt 0 6pt 0; }
+            .rl-md h2 { font-size: 13pt; margin: 8pt 0 5pt 0; }
+            .rl-md h3 { font-size: 11pt; margin: 6pt 0 4pt 0; }
+            .rl-md ul, .rl-md ol { margin: 0 0 6pt 0; padding-left: 16pt; }
+            .rl-md li { margin: 0 0 2pt 0; }
+            .rl-md blockquote { margin: 4pt 0 6pt 0; padding-left: 8pt; border-left: 2pt solid #ccd2da; color: #555; }
+            .rl-md code { font-family: monospace; background: #f3f4f6; }
+            .rl-md hr { border: 0; border-top: 0.5pt solid #999; margin: 6pt 0; }
             .rl-first-header { position: running(rlFirstHeader); }
             .rl-watermark { position: fixed; left: 0; right: 0; top: 35%; text-align: center; z-index: -1; }
             .rl-watermark-in { display: inline-block; font-weight: bold; white-space: nowrap; }

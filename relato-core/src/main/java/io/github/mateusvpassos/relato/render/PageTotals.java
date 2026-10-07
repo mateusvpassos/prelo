@@ -152,6 +152,7 @@ final class PageTotals {
 
     private static List<Node> children(Node n) {
         if (n instanceof Node.Box b) return b.content();
+        if (n instanceof Node.Labels l) return l.items().stream().flatMap(List::stream).toList();
         if (n instanceof Node.Row r) {
             List<Node> all = new ArrayList<>();
             for (Node.Col c : r.columns()) all.addAll(c.content());
@@ -188,6 +189,6 @@ final class PageTotals {
             }
         };
         return new Node.Document(d.title(), d.lang(), d.page(), d.baseCss(), d.extraCss(), d.watermark(),
-                d.firstPageHeader(), d.pageHeader(), f.apply(d.body()), d.pageFooter());
+                d.firstPageHeader(), d.pageHeader(), f.apply(d.body()), d.pageFooter(), d.meta());
     }
 }

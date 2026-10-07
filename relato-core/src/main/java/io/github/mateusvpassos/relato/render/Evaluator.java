@@ -56,7 +56,26 @@ public final class Evaluator {
                 elements(t.firstPageHeader(), scope, "firstPageHeader"),
                 elements(t.pageHeader(), scope, "pageHeader"),
                 elements(t.body(), scope, "body"),
-                elements(t.pageFooter(), scope, "pageFooter"));
+                elements(t.pageFooter(), scope, "pageFooter"),
+                meta(t, scope));
+    }
+
+    private Node.PdfMeta meta(ReportTemplate t, Scope scope) {
+        var m = t.metadata();
+        var s = t.security();
+        if (m == null && s == null) return null;
+        String user = s == null || s.userPassword() == null ? "" : text(s.userPassword(), null, scope);
+        String owner = s == null || s.ownerPassword() == null ? "" : text(s.ownerPassword(), null, scope);
+        return new Node.PdfMeta(
+                m == null || m.author() == null ? null : text(m.author(), null, scope),
+                m == null || m.subject() == null ? null : text(m.subject(), null, scope),
+                m == null || m.keywords() == null ? null : text(m.keywords(), null, scope),
+                m == null || m.creator() == null ? null : text(m.creator(), null, scope),
+                user, owner,
+                s == null || !Boolean.FALSE.equals(s.allowPrint()),
+                s == null || !Boolean.FALSE.equals(s.allowCopy()),
+                s != null && Boolean.TRUE.equals(s.allowModify()),
+                s != null);
     }
 
     Scope rootScope(ReportTemplate t, Object data, Map<String, ?> params) {
@@ -140,6 +159,10 @@ public final class Evaluator {
         if (e instanceof Element.PageBreak) return new Node.PageBreak();
         if (e instanceof Element.Barcode b) return barcode(b, css, scope);
         if (e instanceof Element.Include inc) return include(inc, css, scope, path);
+        if (e instanceof Element.Chart c) return chart(c, css, scope);
+        if (e instanceof Element.Labels l) return labels(l, css, scope, path);
+        if (e instanceof Element.Markdown md) return markdown(md, css, scope);
+        if (e instanceof Element.Crosstab x) return crosstab(x, css, scope);
         throw new ReportException("elemento não suportado: " + e);
     }
 
@@ -195,6 +218,181 @@ public final class Evaluator {
         } finally {
             includeDepth--;
         }
+    }
+
+    // ---------- gráfico
+
+    private Node chart(Element.Chart c, String css, Scope scope) {
+        List<?> items = sorted(Values.toList(expr(c.source() == null ? "rows" : c.source(), scope)), c.sortBy(), scope);
+        Scope cs = scope.child(null, null, items);
+        List<String> seriesNames = new ArrayList<>();
+        List<String> seriesExprs = new ArrayList<>();
+        List<String> seriesColors = new ArrayList<>();
+        if (c.series().isEmpty()) {
+            seriesNames.add(c.title() == null ? "" : c.title());
+            seriesExprs.add(c.value() == null ? "${1}" : c.value());
+            seriesColors.add(null);
+        } else {
+            for (Element.Series s : c.series()) {
+                seriesNames.add(s.name() == null ? "" : text(s.name(), null, scope));
+                seriesExprs.add(s.value());
+                seriesColors.add(s.color());
+            }
+        }
+        // categorias na ordem de chegada; valores somados por categoria
+        Map<String, double[]> byCat = new LinkedHashMap<>();
+        for (Object item : items) {
+            Scope rs = cs.withRow(item);
+            String cat = c.label() == null ? String.valueOf(byCat.size() + 1) : text(c.label(), null, rs);
+            double[] acc = byCat.computeIfAbsent(cat, k -> new double[seriesExprs.size()]);
+            for (int i = 0; i < seriesExprs.size(); i++) {
+                Object v = Interpolated.of(seriesExprs.get(i)).value(rs);
+                java.math.BigDecimal n = v instanceof Number || v instanceof CharSequence ? Values.toNumber(v) : null;
+                if (n != null) acc[i] += n.doubleValue();
+            }
+        }
+        List<String> cats = new ArrayList<>(byCat.keySet());
+        if (c.limit() != null && c.limit() > 0 && cats.size() > c.limit()) cats = cats.subList(0, c.limit());
+        List<Charts.Series> series = new ArrayList<>();
+        List<String> palette = c.colors().isEmpty() ? Charts.PALETTE : c.colors();
+        for (int i = 0; i < seriesExprs.size(); i++) {
+            double[] vals = new double[cats.size()];
+            for (int j = 0; j < cats.size(); j++) vals[j] = byCat.get(cats.get(j))[i];
+            String col = seriesColors.get(i) != null ? seriesColors.get(i) : palette.get(i % palette.size());
+            series.add(new Charts.Series(seriesNames.get(i), Charts.color(col), vals));
+        }
+        double w = Charts.toPt(c.width(), 450), h = Charts.toPt(c.height(), 220);
+        String fmt = c.format();
+        byte[] png = Charts.png(c.chartType(), c.title() == null ? null : text(c.title(), null, scope), cats, series, w, h,
+                !Boolean.FALSE.equals(c.legend()), !Boolean.FALSE.equals(c.showValues()),
+                v -> fmt == null ? compact(v) : formatter.format(java.math.BigDecimal.valueOf(v), fmt));
+        return new Node.Image(dataUri(png), Css.join("width:" + (c.width() == null ? "100%" : c.width()), css), align(c.align()));
+    }
+
+    /** Número curto para eixos e rótulos: 1.234, 12,5 mil, 3,2 mi. */
+    private String compact(double v) {
+        double a = Math.abs(v);
+        if (a >= 1_000_000) return formatter.format(java.math.BigDecimal.valueOf(Math.round(v / 100_000) / 10.0), "#,##0.#") + " mi";
+        if (a >= 10_000) return formatter.format(java.math.BigDecimal.valueOf(Math.round(v / 100) / 10.0), "#,##0.#") + " mil";
+        return formatter.format(java.math.BigDecimal.valueOf(v), "#,##0.##");
+    }
+
+    // ---------- etiquetas
+
+    private Node labels(Element.Labels l, String css, Scope scope, String path) {
+        List<?> items = sorted(Values.toList(expr(l.source() == null ? "rows" : l.source(), scope)), l.sortBy(), scope);
+        Scope ls = scope.child(null, null, items);
+        List<List<Node>> out = new ArrayList<>();
+        int index = 0;
+        for (Object item : items) {
+            Map<String, Object> vars = new HashMap<>();
+            vars.put("item", item);
+            vars.put("index", ++index);
+            Scope is = ls.child(item, vars, null);
+            int copies = 1;
+            if (l.copies() != null && !l.copies().isBlank()) {
+                java.math.BigDecimal n = Values.toNumber(expr(l.copies(), is));
+                copies = n == null ? 0 : Math.max(0, Math.min(1000, n.intValue()));
+            }
+            List<Node> content = elements(l.content(), is, path + ".content");
+            for (int c = 0; c < copies; c++) out.add(content);
+        }
+        return new Node.Labels(out, l.columns() == null ? 2 : Math.max(1, l.columns()), l.rowsPerPage() == null ? 0 : Math.max(0, l.rowsPerPage()),
+                l.width() == null ? "90mm" : l.width(), l.height() == null ? "45mm" : l.height(), l.gap() == null ? "3mm" : l.gap(),
+                Boolean.TRUE.equals(l.border()), l.padding() == null ? "3mm" : l.padding(), css);
+    }
+
+    // ---------- markdown
+
+    private Node markdown(Element.Markdown md, String css, Scope scope) {
+        Interpolated in = Interpolated.of(nz(md.value()));
+        // expressões viram marcadores antes do Markdown (para o valor não ser interpretado como marcação)
+        StringBuilder src = new StringBuilder();
+        List<String> values = new ArrayList<>();
+        for (Object part : in.parts()) {
+            if (part instanceof String s) src.append(HtmlRenderer.escape(s));
+            else {
+                Object v = ((Expr) part).eval(scope);
+                values.add(v instanceof PageRef ? "" : HtmlRenderer.escape(formatter.toText(v)));
+                src.append('\uE000').append(values.size() - 1).append('\uE001');
+            }
+        }
+        String html = Markdown.toXhtml(src.toString());
+        StringBuilder outHtml = new StringBuilder();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\uE000(\\d+)\uE001").matcher(html);
+        while (m.find()) m.appendReplacement(outHtml, java.util.regex.Matcher.quoteReplacement(values.get(Integer.parseInt(m.group(1)))));
+        m.appendTail(outHtml);
+        String plain = outHtml.toString().replaceAll("<br/>", "\n").replaceAll("</(p|h\\d|li|blockquote)>", "\n").replaceAll("<[^>]+>", "")
+                .replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&amp;", "&").trim();
+        return new Node.RichText(outHtml.toString(), plain, Css.join(align(md.align()), css));
+    }
+
+    // ---------- tabela cruzada
+
+    private Node crosstab(Element.Crosstab x, String css, Scope scope) {
+        List<?> items = Values.toList(expr(x.source() == null ? "rows" : x.source(), scope));
+        String agg = x.aggregate() == null ? "sum" : x.aggregate();
+        Map<String, Map<String, List<Object>>> cells = new LinkedHashMap<>();
+        java.util.Set<String> colKeys = new java.util.LinkedHashSet<>();
+        Map<String, List<Object>> byRow = new LinkedHashMap<>(), byCol = new LinkedHashMap<>();
+        List<Object> all = new ArrayList<>();
+        Scope cs = scope.child(null, null, items);
+        for (Object item : items) {
+            Scope rs = cs.withRow(item);
+            String r = x.rows() == null ? "" : text(x.rows(), null, rs);
+            String c = x.columns() == null ? "" : text(x.columns(), null, rs);
+            Object v = "count".equals(agg) ? 1 : x.value() == null ? null : Interpolated.of(x.value()).value(rs);
+            colKeys.add(c);
+            cells.computeIfAbsent(r, k -> new LinkedHashMap<>()).computeIfAbsent(c, k -> new ArrayList<>()).add(v);
+            byRow.computeIfAbsent(r, k -> new ArrayList<>()).add(v);
+            byCol.computeIfAbsent(c, k -> new ArrayList<>()).add(v);
+            all.add(v);
+        }
+        List<String> cols = new ArrayList<>(colKeys);
+        if ("asc".equalsIgnoreCase(x.sortColumns())) cols.sort(null);
+        else if ("desc".equalsIgnoreCase(x.sortColumns())) cols.sort(java.util.Comparator.reverseOrder());
+        boolean totals = !Boolean.FALSE.equals(x.totals());
+        String totalLabel = x.totalLabel() == null ? "Total" : text(x.totalLabel(), null, scope);
+        List<Node.ColSpec> specs = new ArrayList<>();
+        specs.add(new Node.ColSpec(x.rowHeader() == null ? "" : text(x.rowHeader(), null, scope), null, null, "font-weight:bold", ""));
+        for (String c : cols) specs.add(new Node.ColSpec(c, null, "right", "", ""));
+        if (totals) specs.add(new Node.ColSpec(totalLabel, null, "right", "font-weight:bold", ""));
+        List<Node.TRow> rows = new ArrayList<>();
+        for (Map.Entry<String, Map<String, List<Object>>> r : cells.entrySet()) {
+            List<Node.Cell> line = new ArrayList<>();
+            line.add(new Node.Cell(r.getKey(), r.getKey(), null));
+            for (String c : cols) line.add(aggCell(r.getValue().get(c), agg, x.format()));
+            if (totals) line.add(aggCell(byRow.get(r.getKey()), agg, x.format()));
+            rows.add(new Node.DataRow(line));
+        }
+        if (totals && !cells.isEmpty()) {
+            List<Node.Cell> line = new ArrayList<>();
+            line.add(null);
+            for (String c : cols) line.add(aggCell(byCol.get(c), agg, x.format()));
+            line.add(aggCell(all, agg, x.format()));
+            rows.add(new Node.TotalRow(-1, totalLabel, line, ""));
+        }
+        return new Node.Table(specs, rows, true, Boolean.TRUE.equals(x.zebra()), !Boolean.FALSE.equals(x.grid()), "", css, null);
+    }
+
+    private Node.Cell aggCell(List<Object> vals, String agg, String format) {
+        if (vals == null || vals.isEmpty()) return new Node.Cell("", null, format);
+        java.math.BigDecimal acc = null;
+        int n = 0;
+        for (Object v : vals) {
+            java.math.BigDecimal b = v instanceof Number || v instanceof CharSequence ? Values.toNumber(v) : null;
+            if (b == null) continue;
+            n++;
+            acc = switch (agg) {
+                case "min" -> acc == null || b.compareTo(acc) < 0 ? b : acc;
+                case "max" -> acc == null || b.compareTo(acc) > 0 ? b : acc;
+                default -> acc == null ? b : acc.add(b);
+            };
+        }
+        if (acc == null) return new Node.Cell("", null, format);
+        if ("avg".equals(agg)) acc = Values.normalize(acc.divide(java.math.BigDecimal.valueOf(n), java.math.MathContext.DECIMAL64));
+        if ("count".equals(agg)) acc = java.math.BigDecimal.valueOf(n);
+        return new Node.Cell(formatter.format(acc, "count".equals(agg) ? null : format), acc, format);
     }
 
     private String resolveSrc(String s) {

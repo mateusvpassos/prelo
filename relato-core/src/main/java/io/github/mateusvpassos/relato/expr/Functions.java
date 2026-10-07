@@ -116,6 +116,10 @@ public final class Functions {
         });
         fn("values", (a, s) -> a.get(0) instanceof Map<?, ?> m ? new ArrayList<>(m.values()) : Values.toList(a.get(0)));
         fn("keys", (a, s) -> a.get(0) instanceof Map<?, ?> m ? new ArrayList<>(m.keySet()) : List.of());
+        fn("pix", (a, s) -> BrCodes.pix(Values.str(a.get(0)), a.size() > 1 ? Values.toNumber(a.get(1)) : null,
+                a.size() > 2 ? Values.str(a.get(2)) : null, a.size() > 3 ? Values.str(a.get(3)) : null,
+                a.size() > 4 ? Values.str(a.get(4)) : null, a.size() > 5 ? Values.str(a.get(5)) : null));
+        fn("boleto", (a, s) -> BrCodes.boletoBarcode(Values.str(a.get(0))));
         fn("today", (a, s) -> LocalDate.now(s.formatter().zone()));
         fn("now", (a, s) -> LocalDateTime.now(s.formatter().zone()));
     }

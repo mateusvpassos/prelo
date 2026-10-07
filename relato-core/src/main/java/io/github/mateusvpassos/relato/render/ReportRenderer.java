@@ -64,16 +64,21 @@ public final class ReportRenderer {
             return;
         }
         Node.Document doc = PageTotals.apply(evaluated, fonts, formatter);
-        if (doc.watermark() == null) {
+        if (!PdfPost.needed(doc)) {
             PdfRenderer.render(HtmlRenderer.render(doc), fonts, out);
             return;
         }
-        // marca d'água desenhada por baixo do conteúdo, com transparência (o HTML→PDF não faz opacidade)
+        // marca d'água, metadados e senha: aplicados com PDFBox depois (o HTML→PDF não faz opacidade nem criptografia)
         Node.Document plain = new Node.Document(doc.title(), doc.lang(), doc.page(), doc.baseCss(), doc.extraCss(), null,
-                doc.firstPageHeader(), doc.pageHeader(), doc.body(), doc.pageFooter());
+                doc.firstPageHeader(), doc.pageHeader(), doc.body(), doc.pageFooter(), null);
         java.io.ByteArrayOutputStream tmp = new java.io.ByteArrayOutputStream(64 * 1024);
         PdfRenderer.render(HtmlRenderer.render(plain), fonts, tmp);
-        Watermarks.apply(tmp.toByteArray(), doc.watermark(), out);
+        PdfPost.apply(tmp.toByteArray(), doc, out);
+    }
+
+    /** Primeira tabela do relatório em CSV (separador ';', UTF-8 com BOM para o Excel). */
+    public void csv(ReportTemplate t, Object data, Map<String, ?> params, OutputStream out) {
+        CsvRenderer.render(evaluate(t, data, params), out);
     }
 
     public void xlsx(ReportTemplate t, Object data, Map<String, ?> params, OutputStream out) {
@@ -85,6 +90,6 @@ public final class ReportRenderer {
         Node.Document d = new Evaluator(formatter, resources, includes).evaluate(t, data, params);
         if (defaultFamily == null) return d;
         return new Node.Document(d.title(), d.lang(), d.page(), Css.join("font-family:'" + defaultFamily + "', sans-serif", d.baseCss()),
-                d.extraCss(), d.watermark(), d.firstPageHeader(), d.pageHeader(), d.body(), d.pageFooter());
+                d.extraCss(), d.watermark(), d.firstPageHeader(), d.pageHeader(), d.body(), d.pageFooter(), d.meta());
     }
 }

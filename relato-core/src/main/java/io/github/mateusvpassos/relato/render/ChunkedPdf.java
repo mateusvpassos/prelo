@@ -104,7 +104,7 @@ final class ChunkedPdf {
             merger.setDestinationFileName(merged.toString());
             RandomAccessStreamCache.StreamCacheCreateFunction cache = MemoryUsageSetting.setupTempFileOnly().streamCache;
             merger.mergeDocuments(cache);
-            stampPageNumbers(merged, total, slots, doc.watermark(), out);
+            stampPageNumbers(merged, total, slots, doc, out);
         } catch (IOException e) {
             throw new ReportException("falha ao gerar PDF em blocos: " + e.getMessage(), e);
         } finally {
@@ -128,7 +128,7 @@ final class ChunkedPdf {
         body.add(t);
         if (last) body.addAll(doc.body().subList(ti + 1, doc.body().size()));
         return new Node.Document(doc.title(), doc.lang(), doc.page(), doc.baseCss(), doc.extraCss(), null,
-                first ? doc.firstPageHeader() : List.of(), doc.pageHeader(), body, doc.pageFooter());
+                first ? doc.firstPageHeader() : List.of(), doc.pageHeader(), body, doc.pageFooter(), null);
     }
 
     /**
@@ -137,7 +137,7 @@ final class ChunkedPdf {
      */
     private static List<float[]> probe(Node.Document doc, List<PdfRenderer.FontFile> fonts, int digits) throws ReportException {
         Node.Document d = new Node.Document(doc.title(), doc.lang(), doc.page(), doc.baseCss(), doc.extraCss(), null,
-                List.of(), doc.pageHeader(), List.of(), doc.pageFooter());
+                List.of(), doc.pageHeader(), List.of(), doc.pageFooter(), null);
         java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
         PdfRenderer.render(HtmlRenderer.render(d, HtmlRenderer.PageNumbers.PROBE, digits), fonts, bytes);
         List<float[]> out = new ArrayList<>();
@@ -166,7 +166,7 @@ final class ChunkedPdf {
     }
 
     /** Escreve os números de página nos espaços reservados (mesma posição em todas as páginas). */
-    private static void stampPageNumbers(Path pdf, int total, List<float[]> slots, Node.Watermark watermark, OutputStream out) throws IOException {
+    private static void stampPageNumbers(Path pdf, int total, List<float[]> slots, Node.Document source, OutputStream out) throws IOException {
         try (PDDocument doc = Loader.loadPDF(pdf.toFile(), MemoryUsageSetting.setupTempFileOnly().streamCache)) {
             PDType1Font font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
             int pageNo = 0;
@@ -186,7 +186,7 @@ final class ChunkedPdf {
                     }
                 }
             }
-            if (watermark != null) Watermarks.applyTo(doc, watermark);
+            PdfPost.apply(doc, source);
             doc.save(out);
         }
     }

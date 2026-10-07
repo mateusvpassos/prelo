@@ -66,11 +66,19 @@ public final class ReportRequest {
         renderer.xlsx(template, data, params, out);
     }
 
+    /** Primeira tabela em CSV (separador ';', UTF-8 com BOM). */
+    public byte[] csv() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream(16 * 1024);
+        renderer.csv(template, data, params, out);
+        return out.toByteArray();
+    }
+
     public byte[] render(Format format) {
         return switch (format) {
             case PDF -> pdf();
             case HTML -> html().getBytes(java.nio.charset.StandardCharsets.UTF_8);
             case XLSX -> xlsx();
+            case CSV -> csv();
         };
     }
 
@@ -85,6 +93,7 @@ public final class ReportRequest {
                 }
             }
             case XLSX -> xlsx(out);
+            case CSV -> renderer.csv(template, data, params, out);
         }
     }
 }

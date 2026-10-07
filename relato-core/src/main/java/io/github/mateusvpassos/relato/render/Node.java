@@ -7,7 +7,18 @@ import java.util.List;
 sealed interface Node {
 
     record Document(String title, String lang, Page page, String baseCss, String extraCss, Watermark watermark,
-                    List<Node> firstPageHeader, List<Node> pageHeader, List<Node> body, List<Node> pageFooter) {}
+                    List<Node> firstPageHeader, List<Node> pageHeader, List<Node> body, List<Node> pageFooter, PdfMeta meta) {}
+
+    /** Metadados e proteção do PDF, já avaliados (aplicados com PDFBox depois de gerar). */
+    record PdfMeta(String author, String subject, String keywords, String creator,
+                   String userPassword, String ownerPassword, boolean allowPrint, boolean allowCopy, boolean allowModify, boolean secured) {}
+
+    /** Etiquetas: uma lista de blocos por etiqueta, em grade de tamanho fixo. */
+    record Labels(List<List<Node>> items, int columns, int rowsPerPage, String width, String height, String gap, boolean border,
+                  String padding, String css) implements Node {}
+
+    /** Texto rico já convertido para XHTML (Markdown). {@code plain}: o mesmo sem marcação, para o XLSX. */
+    record RichText(String html, String plain, String css) implements Node {}
 
     /** Marca d'água: texto ou imagem (data URI). */
     record Watermark(String text, String imageSrc, String color, double size, double angle, double opacity, String width) {

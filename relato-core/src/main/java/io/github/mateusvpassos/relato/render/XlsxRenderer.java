@@ -71,6 +71,16 @@ final class XlsxRenderer {
             nodes(l.footer());
         } else if (n instanceof Node.Fields f) row = fieldsAt(f, row, 0);
         else if (n instanceof Node.Spacer || n instanceof Node.PageBreak) row++;
+        else if (n instanceof Node.RichText rt) {
+            for (String line : rt.plain().split("\n")) {
+                if (!line.isBlank()) put(row++, 0, line.strip(), null, false);
+            }
+        } else if (n instanceof Node.Labels l) {
+            for (List<Node> item : l.items()) {
+                nodes(item);
+                row++;
+            }
+        }
     }
 
     private int fieldsAt(Node.Fields f, int r, int col) {
