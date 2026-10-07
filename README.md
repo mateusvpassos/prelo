@@ -16,6 +16,7 @@ Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON decla
 | `relato-jrxml` | migração de `.jrxml` (JasperReports) para `.report.json` (CLI + usado pelo plugin) |
 | `relato-spring-boot-starter` | bean `Relato` + `ReportResponses` para controllers |
 | `relato-quarkus` | producer CDI (`@Inject Relato`) + `ReportResponses` JAX-RS |
+| `relato-server` | linha de comando (`render`, `check`) e serviço HTTP para gerar relatórios de qualquer linguagem |
 | `relato-intellij` | plugin: designer visual, editor JSON com preview, campos a partir de DTO, migração de `.jrxml` |
 
 ## Instalar (local)
@@ -235,6 +236,29 @@ Uma propriedade que resulta vazia é descartada.
 - Na barra: zoom, **Dados de exemplo** (cria/abre o sample) e exportar PDF/XLSX/HTML.
 - Paleta do designer inclui gráfico, tabela cruzada, etiquetas e texto formatado, e os prontos *QR Pix* e *Boleto (ITF)*.
 - `New → Relatório Relato` cria um template inicial.
+
+## Linha de comando e serviço HTTP (`relato-server`)
+
+Jar único com tudo dentro (inclui `relato-fonts`):
+```bash
+./gradlew :relato-server:fatJar        # relato-server/build/libs/relato-server-0.1.0-SNAPSHOT-all.jar
+```
+
+```bash
+java -jar relato-server-all.jar render examples/cobranca.report.json              # usa cobranca.sample.json, grava cobranca.pdf
+java -jar relato-server-all.jar render vendas.report.json -d dados.json -o vendas.xlsx -p periodo=09/2026
+java -jar relato-server-all.jar check src/main/resources/reports                  # sai com 1 se houver problema (CI)
+java -jar relato-server-all.jar serve --port 8090 --templates reports --token segredo
+```
+
+Com o serviço no ar, qualquer sistema (Node, Python, PHP, Delphi...) gera o relatório:
+```bash
+curl -X POST "http://127.0.0.1:8090/render/vendas?format=pdf" -H "Authorization: Bearer segredo"      -H "Content-Type: application/json" -d '{"params": {"periodo": "09/2026"}, "data": [ ... ]}' -o vendas.pdf
+```
+- `POST /render/{nome}?format=pdf|xlsx|html|csv` (`&download=1` para anexo, `&filename=x`), corpo `{"params", "data"}`.
+- `POST /render` com o template no corpo: `{"template": {...}, "params", "data"}`.
+- `GET /templates` lista os nomes; `GET /health` não exige token.
+- Escuta em `127.0.0.1` por padrão. Para expor na rede use `--host 0.0.0.0` **com** `--token` (ou `RELATO_TOKEN`). Imagens com caminho relativo só são lidas dentro da pasta de templates e `include` só aceita nomes simples. Imagens `http(s)://` são baixadas pelo renderizador: não deixe dados não confiáveis escolherem o `src`.
 
 ## Relatórios grandes
 
