@@ -37,6 +37,7 @@ A regra que orienta tudo: **o template é dado, não código**. O JSON é a font
 | `relato-jrxml` | core | conversor Jasper, CLI, ligação de sub-relatórios |
 | `relato-spring-boot-starter` | core, Spring (compileOnly) | auto-config + `ReportResponses` |
 | `relato-quarkus` | core, CDI/MP Config/JAX-RS (compileOnly) | producer CDI (`META-INF/beans.xml`) + `ReportResponses` |
+| `relato-server` | core, fonts | CLI (`render`, `check`) e serviço HTTP (JDK `HttpServer`); `fatJar` gera o jar único |
 | `relato-intellij` | core, jrxml, PDFBox, plataforma IntelliJ | plugin (Kotlin + designer em HTML/JS) |
 | `demo-spring`, `demo-quarkus` | artefatos do `mavenLocal` | builds separados, fora do `settings.gradle.kts` |
 
@@ -135,6 +136,19 @@ parâmetros (params/param/cada parâmetro)      ← raiz; mapa tolerante (Values
 
 O teste `ChunkedTest` garante que o texto de cada página é igual ao do modo normal.
 
+**Blocos de "conteúdo gerado"** (todos viram `Node`s já resolvidos, então HTML/PDF/XLSX não sabem que existiram):
+- **`chart`** → `Charts` (Java2D, sem dependência nova) desenha um PNG em 3 px/pt e vira `Node.Image`. O `Evaluator` agrupa os itens por `label` (soma por categoria, na ordem de chegada após `sortBy`); `limit` corta ou, em pizza/rosca, junta o resto em "Outros".
+- **`crosstab`** → `Node.Table` comum (linhas × colunas + totais), então paginação, zebra e CSV/XLSX funcionam sem código novo.
+- **`labels`** → `Node.Labels` (itens × cópias). O `HtmlRenderer` emite uma `<table>` de células de tamanho fixo por folha (`rowsPerPage`), com `page-break-after`; o recuo interno fica num `div` `box-sizing: border-box` porque o `td` do openhtmltopdf soma padding à altura.
+- **`markdown`** → `Node.RichText`. As expressões viram marcadores `\uE000n\uE001` (uso privado: sobrevivem ao `trim`) antes do `Markdown.toXhtml`; os valores entram escapados depois. Assim um valor com `*` ou `<` nunca vira marcação.
+- **Estilo condicional**: `Evaluator.dynCss` interpola `style` com `${}` por bloco; no `style` de coluna, por linha (`Node.Cell.css`). Propriedades que ficam vazias são removidas.
+
+**`PdfPost`**: pós-processamento PDFBox único, chamado pelo modo normal e pelo `ChunkedPdf`: marca d'água, `metadata` (Info do PDF) e `security` (`StandardProtectionPolicy` AES-256; sem `ownerPassword`, usa um aleatório).
+
+**`CsvRenderer`**: só a 1ª `Node.Table` (procura dentro de caixas, colunas e listas). `;`, UTF-8 com BOM, números sem milhar e com vírgula (Excel pt-BR), CPF/CNPJ como texto.
+
+**`expr/BrCodes`**: `pix()` monta o BR Code (EMV, campos 00/26/52/53/54/58/59/60/62 e CRC16-CCITT no 63); `boleto()` converte linha digitável (47 ou 48 dígitos) em código de barras de 44.
+
 **`Watermarks`**: o openhtmltopdf ignora `opacity` e `z-index`. Por isso a marca d'água é desenhada depois, com PDFBox: `PREPEND` (por baixo do conteúdo), transparência via `PDExtendedGraphicsState`, Helvetica base-14.
 
 **`XlsxRenderer`**: percorre o mesmo `Node`.
@@ -225,6 +239,11 @@ Validação: `CorpusTest` com `-Drelato.jrxml.corpus=...` (arquivos reais fora d
 
 ---
 
+## relato-server
+
+- `RelatoCli`: `render` (dados no formato do `*.sample.json`; sem `-d` usa o sample ao lado), `check` (FieldCheck em arquivos ou pastas, código de saída 1 para CI) e `serve`. Silencia o log do openhtmltopdf (`XRLog`) e do fontbox, salvo com `RELATO_VERBOSE`.
+- `RelatoServer`: `HttpServer` com pool fixo. Templates por nome da pasta (`cache(false)`: editar vale na hora) ou no corpo. Segurança: `127.0.0.1` por padrão, `Bearer` comparado em tempo constante, nomes validados também no `include` (`confined(TemplateLoader)`), `ResourceResolver` preso à pasta, corpo até 64 MB. O `HttpExchange` é fechado no `finally` (um `try (ex)` fecharia antes do `catch` e a resposta de erro sumiria).
+
 ## Integrações
 
 - **Spring**: `RelatoAutoConfiguration` (`@AutoConfiguration`, registrada em `META-INF/spring/...AutoConfiguration.imports`), `@ConditionalOnMissingBean`, propriedades `relato.*` em `RelatoProperties`.
@@ -272,7 +291,8 @@ Model + schema (o designer passa a mostrar sozinho) + `Evaluator`. Se ela contiv
 
 | Onde | O que cobre |
 |---|---|
-| `relato-core` | expressões, formatos, grupos/totais/paginação (lendo o texto do PDF), recursos (1ª página, marca d'água, barras, include, a transportar), equivalência do modo em blocos, FieldCheck; `PerfTest` opcional |
+| `relato-core` | expressões, formatos, grupos/totais/paginação (lendo o texto do PDF), recursos (1ª página, marca d'água, barras, include, a transportar), equivalência do modo em blocos, FieldCheck; `NovidadesTest` (gráficos, etiquetas, markdown, crosstab, Pix/boleto, senha, CSV, estilo condicional); `GaleriaTest` renderiza `examples/` (`-Dgaleria=true` regrava `docs/galeria`); `PerfTest` opcional |
+| `relato-server` | HTTP (token, nomes, recursos confinados, erros 4xx) e CLI |
 | `relato-fonts` | Unicode no PDF |
 | `relato-jrxml` | tradução de expressões, conversão de um `.jrxml` sintético, lote real opcional |
 | `relato-spring-boot-starter` | auto-config + resposta HTTP |

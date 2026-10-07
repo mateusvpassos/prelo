@@ -202,3 +202,29 @@ Os detalhes e exemplos de cada um estão no README (*Recursos de página*):
 - Blocos `barcode` (QR, code128, EAN...) e `include` (sub-relatório).
 
 No Designer eles aparecem na paleta (*Código de barras / QR*, *Sub-relatório*), em ⚙ Relatório (*Marca d'água*) e nas propriedades da tabela (*A transportar*). O cabeçalho da 1ª página aparece no Designer pelo link *+ cabeçalho diferente na 1ª página*.
+
+## 11. Além de listagens
+
+Abra os exemplos de `examples/` no IntelliJ (o preview usa o `.sample.json` ao lado). Imagens de todos em [docs/GALERIA.md](docs/GALERIA.md).
+
+| Quero... | Use | Exemplo |
+|---|---|---|
+| um painel com gráficos | bloco `chart` (barra, linha, área, pizza, rosca) e `crosstab` | `painel.report.json` |
+| cobrar com Pix e boleto | `${pix(chave, valor, nome, cidade, txid)}` num `barcode` `qr`; `${boleto(linha)}` num `barcode` `itf` | `cobranca.report.json` |
+| imprimir etiquetas | bloco `labels` com `columns`, `rowsPerPage`, `width`, `height`, `copies` | `etiquetas.report.json` |
+| crachás / cartões | `labels` + `box` com fundo + QR | `crachas.report.json` |
+| contrato, carta, certificado | bloco `markdown` com `${...}` no texto | `contrato.report.json` |
+| PDF que abre com senha | `"security": { "userPassword": "${cpf}", "allowCopy": false }` | README |
+| destacar valores | estilo condicional: `"style": { "color": "${saldo < 0 ? 'red' : ''}" }` | crachás |
+| planilha simples | `.csv()` ou *Exportar CSV* no preview | |
+
+No Designer: *Gráfico*, *Tabela cruzada*, *Etiquetas / crachás* e *Texto formatado* na paleta; *QR Pix* e *Boleto (ITF)* em Prontos. Senha e propriedades do PDF ficam em ⚙ Relatório.
+
+## 12. Gerar relatório sem Java (CLI e HTTP)
+
+```bash
+JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew :relato-server:fatJar
+java -jar relato-server/build/libs/relato-server-0.1.0-SNAPSHOT-all.jar render examples/painel.report.json
+java -jar relato-server/build/libs/relato-server-0.1.0-SNAPSHOT-all.jar serve --templates examples
+```
+Depois `POST http://127.0.0.1:8090/render/painel?format=pdf` com `{"params": {...}, "data": [...]}`. Detalhes no README (*Linha de comando e serviço HTTP*).

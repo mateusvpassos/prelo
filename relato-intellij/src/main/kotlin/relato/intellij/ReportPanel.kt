@@ -129,6 +129,9 @@ class ReportPanel(private val project: Project, private val file: VirtualFile) :
         group.add(object : DumbAwareAction("Exportar HTML", null, AllIcons.FileTypes.Html) {
             override fun actionPerformed(e: AnActionEvent) = export(Format.HTML)
         })
+        group.add(object : DumbAwareAction("Exportar CSV", "Primeira tabela do relatório, separada por ';'", AllIcons.FileTypes.Text) {
+            override fun actionPerformed(e: AnActionEvent) = export(Format.CSV)
+        })
         val tb = ActionManager.getInstance().createActionToolbar("RelatoPreview", group, true)
         tb.targetComponent = this
         return tb.component
