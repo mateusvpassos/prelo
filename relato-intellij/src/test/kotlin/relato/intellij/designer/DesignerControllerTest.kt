@@ -105,7 +105,12 @@ class DesignerControllerTest : BasePlatformTestCase() {
         assertTrue(ids.toString(), ids.contains("relato-report-editor"))
         assertTrue(ids.toString(), ids.contains("relato-designer"))
         assertTrue(ids.toString(), ids.indexOf("relato-report-editor") < ids.indexOf("relato-designer"))
-        assertTrue(DesignerHtml.page().contains("window.relato = {"))
+        val page = DesignerHtml.page()
+        assertTrue(page.contains("window.relato = {"))
+        // tudo embutido: ícones, fontes como data URI, nenhum arquivo relativo
+        assertTrue(page.contains("window.rlIcon = rlIcon"))
+        assertTrue(page.contains("url('data:font/woff2;base64,"))
+        assertFalse(page.contains("src=\"icons.js\"") || page.contains("url('fonts/"))
     }
 
     fun testCopyAndPasteGoThroughIdeClipboard() {

@@ -4,12 +4,14 @@
 <meta charset="UTF-8">
 <title>Relato Designer (dev)</title>
 <link rel="stylesheet" href="../relato-intellij/src/main/resources/designer/designer.css">
+<script src="../relato-intellij/src/main/resources/designer/icons.js"></script>
 <script>
   // host simulado: guarda as mensagens enviadas e responde ao 'ready' com o exemplo de vendas
   window.sent = [];
   window.relatoMockHost = async (msg) => {
     window.sent.push(msg);
     if (msg.type === 'ready') {
+      if (new URLSearchParams(location.search).get('dark') !== '0') window.relato.receive({ type: 'theme', dark: true });
       const file = new URLSearchParams(location.search).get('file') || 'vendas';
       const [json, schema] = await Promise.all([
         fetch('../examples/' + file + '.report.json').then((r) => r.text()),
@@ -41,17 +43,25 @@
 <div id="app">
   <div id="toolbar">
     <span class="title" id="title">Relato</span>
-    <button class="tbtn" id="undo">↶ Desfazer</button>
-    <button class="tbtn" id="redo">↷ Refazer</button>
+    <div class="grp">
+      <button class="tbtn icon" id="undo" title="Desfazer (Ctrl+Z)"><i data-icon="undo"></i></button>
+      <button class="tbtn icon" id="redo" title="Refazer (Ctrl+Y)"><i data-icon="redo"></i></button>
+    </div>
     <span class="spacer"></span>
     <span class="status" id="status"></span>
-    <button class="tbtn" id="zoomOut" title="Diminuir">−</button>
-    <button class="tbtn" id="zoomFit" title="Ajustar à largura"><span id="zoomLabel">100%</span></button>
-    <button class="tbtn" id="zoomIn" title="Aumentar">+</button>
-    <button class="tbtn" id="reportProps">⚙ Relatório</button>
-    <button class="tbtn" id="pasteBtn" title="Colar blocos (Ctrl+V)">📋 Colar</button>
-    <button class="tbtn" id="splitPreview" title="Layout e PDF lado a lado, atualizando sozinho">◧ Lado a lado</button>
-    <button class="tbtn" id="togglePreview" title="Ver o PDF gerado com os dados de exemplo">▶ Preview PDF</button>
+    <div class="grp">
+      <button class="tbtn icon" id="zoomOut" title="Diminuir"><i data-icon="zoomOut"></i></button>
+      <button class="tbtn zoom" id="zoomFit" title="Ajustar à largura"><span id="zoomLabel">100%</span></button>
+      <button class="tbtn icon" id="zoomIn" title="Aumentar"><i data-icon="zoomIn"></i></button>
+    </div>
+    <span class="vsep"></span>
+    <button class="tbtn" id="reportProps" title="Página, parâmetros e campos do relatório"><i data-icon="settings"></i>Relatório</button>
+    <button class="tbtn icon" id="pasteBtn" title="Colar blocos (Ctrl+V)"><i data-icon="paste"></i></button>
+    <span class="vsep"></span>
+    <div class="seg">
+      <button class="tbtn" id="splitPreview" title="Layout e PDF lado a lado, atualizando sozinho"><i data-icon="split"></i>Lado a lado</button>
+      <button class="tbtn" id="togglePreview" title="Ver o PDF gerado com os dados de exemplo"><i data-icon="eye"></i>PDF</button>
+    </div>
   </div>
   <div id="palette"></div>
   <div id="center">

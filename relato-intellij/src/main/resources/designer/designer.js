@@ -14,31 +14,31 @@
   ];
 
   const TYPES = {
-    text: { label: 'Texto', icon: 'T', make: () => ({ type: 'text', value: 'Texto' }) },
-    table: { label: 'Tabela', icon: '▦', make: () => ({ type: 'table', zebra: true, columns: defaultColumns() }) },
-    list: { label: 'Lista (repetir)', icon: '≡', make: () => ({ type: 'list', source: firstListField() || 'rows', content: [] }) },
-    fields: { label: 'Ficha (rótulo: valor)', icon: '⊞', make: () => ({ type: 'fields', columns: 2, items: defaultFieldItems() }) },
-    row: { label: 'Colunas', icon: '▥', make: () => ({ type: 'row', columns: [{ width: '50%', content: [] }, { width: '50%', content: [] }] }) },
-    box: { label: 'Caixa', icon: '▢', make: () => ({ type: 'box', style: { border: true, padding: 4 }, content: [] }) },
-    image: { label: 'Imagem', icon: '▣', make: () => ({ type: 'image', src: 'classpath:img/logo.png', width: '30mm' }) },
-    line: { label: 'Linha', icon: '—', make: () => ({ type: 'line' }) },
-    spacer: { label: 'Espaço', icon: '↕', make: () => ({ type: 'spacer', height: '5mm' }) },
-    pageBreak: { label: 'Quebra de página', icon: '⤓', make: () => ({ type: 'pageBreak' }) },
-    html: { label: 'HTML', icon: '<>', make: () => ({ type: 'html', value: '<b>HTML</b>' }) },
-    barcode: { label: 'Código de barras / QR', icon: '▤', make: () => ({ type: 'barcode', value: '${codigo}', format: 'qr', width: '25mm' }) },
-    include: { label: 'Sub-relatório', icon: '⎘', make: () => ({ type: 'include', template: 'outro-relatorio' }) },
-    chart: { label: 'Gráfico', icon: '◔', make: () => ({ type: 'chart', chartType: 'bar', title: 'Gráfico', label: '${' + (firstTextField() || 'categoria') + '}', value: '${' + (firstNumberField() || 'valor') + '}', height: '70mm' }) },
-    crosstab: { label: 'Tabela cruzada', icon: '⊠', make: () => ({ type: 'crosstab', rows: '${' + (firstTextField() || 'linha') + '}', columns: '${coluna}', value: '${' + (firstNumberField() || 'valor') + '}' }) },
-    labels: { label: 'Etiquetas / crachás', icon: '▭', make: () => ({ type: 'labels', columns: 3, rowsPerPage: 7, width: '63mm', height: '38mm', border: true, content: [{ type: 'text', value: '${' + (firstTextField() || 'nome') + '}', style: { bold: true } }] }) },
-    markdown: { label: 'Texto formatado', icon: 'M↓', make: () => ({ type: 'markdown', value: '## Título\n\nTexto com **negrito** e *itálico*.\n\n- item 1\n- item 2' }) },
+    text: { label: 'Texto', icon: 'text', make: () => ({ type: 'text', value: 'Texto' }) },
+    table: { label: 'Tabela', icon: 'table', make: () => ({ type: 'table', zebra: true, columns: defaultColumns() }) },
+    list: { label: 'Lista (repetir)', icon: 'list', make: () => ({ type: 'list', source: firstListField() || 'rows', content: [] }) },
+    fields: { label: 'Ficha (rótulo: valor)', icon: 'fields', make: () => ({ type: 'fields', columns: 2, items: defaultFieldItems() }) },
+    row: { label: 'Colunas', icon: 'columns', make: () => ({ type: 'row', columns: [{ width: '50%', content: [] }, { width: '50%', content: [] }] }) },
+    box: { label: 'Caixa', icon: 'box', make: () => ({ type: 'box', style: { border: true, padding: 4 }, content: [] }) },
+    image: { label: 'Imagem', icon: 'image', make: () => ({ type: 'image', src: 'classpath:img/logo.png', width: '30mm' }) },
+    line: { label: 'Linha', icon: 'line', make: () => ({ type: 'line' }) },
+    spacer: { label: 'Espaço', icon: 'spacer', make: () => ({ type: 'spacer', height: '5mm' }) },
+    pageBreak: { label: 'Quebra de página', icon: 'pageBreak', make: () => ({ type: 'pageBreak' }) },
+    html: { label: 'HTML', icon: 'html', make: () => ({ type: 'html', value: '<b>HTML</b>' }) },
+    barcode: { label: 'Código de barras / QR', icon: 'qr', make: () => ({ type: 'barcode', value: '${codigo}', format: 'qr', width: '25mm' }) },
+    include: { label: 'Sub-relatório', icon: 'include', make: () => ({ type: 'include', template: 'outro-relatorio' }) },
+    chart: { label: 'Gráfico', icon: 'chart', make: () => ({ type: 'chart', chartType: 'bar', title: 'Gráfico', label: '${' + (firstTextField() || 'categoria') + '}', value: '${' + (firstNumberField() || 'valor') + '}', height: '70mm' }) },
+    crosstab: { label: 'Tabela cruzada', icon: 'crosstab', make: () => ({ type: 'crosstab', rows: '${' + (firstTextField() || 'linha') + '}', columns: '${coluna}', value: '${' + (firstNumberField() || 'valor') + '}' }) },
+    labels: { label: 'Etiquetas / crachás', icon: 'labels', make: () => ({ type: 'labels', columns: 3, rowsPerPage: 7, width: '63mm', height: '38mm', border: true, content: [{ type: 'text', value: '${' + (firstTextField() || 'nome') + '}', style: { bold: true } }] }) },
+    markdown: { label: 'Texto formatado', icon: 'markdown', make: () => ({ type: 'markdown', value: '## Título\n\nTexto com **negrito** e *itálico*.\n\n- item 1\n- item 2' }) },
   };
 
   const SNIPPETS = [
-    { label: 'Título', icon: 'H', el: () => ({ type: 'text', value: 'Título do relatório', style: { bold: true, size: 14 } }) },
-    { label: 'Página X de Y', icon: '#', el: () => ({ type: 'text', value: 'Página ${page} de ${pages}', align: 'right', style: { size: 8 } }) },
-    { label: 'Data de emissão', icon: '◷', el: () => ({ type: 'text', value: 'Emitido em ${now()}', style: { size: 8, color: '#777' } }) },
-    { label: 'QR Pix', icon: '◫', el: () => ({ type: 'barcode', format: 'qr', value: "${pix('chave@pix', valor, 'NOME', 'CIDADE', txid)}", width: '35mm' }) },
-    { label: 'Boleto (ITF)', icon: '▥', el: () => ({ type: 'barcode', format: 'itf', value: '${boleto(linhaDigitavel)}', width: '103mm', height: '13mm' }) },
+    { label: 'Título', icon: 'heading', el: () => ({ type: 'text', value: 'Título do relatório', style: { bold: true, size: 14 } }) },
+    { label: 'Página X de Y', icon: 'hash', el: () => ({ type: 'text', value: 'Página ${page} de ${pages}', align: 'right', style: { size: 8 } }) },
+    { label: 'Data de emissão', icon: 'clock', el: () => ({ type: 'text', value: 'Emitido em ${now()}', style: { size: 8, color: '#777' } }) },
+    { label: 'QR Pix', icon: 'pix', el: () => ({ type: 'barcode', format: 'qr', value: "${pix('chave@pix', valor, 'NOME', 'CIDADE', txid)}", width: '35mm' }) },
+    { label: 'Boleto (ITF)', icon: 'barcode', el: () => ({ type: 'barcode', format: 'itf', value: '${boleto(linhaDigitavel)}', width: '103mm', height: '13mm' }) },
   ];
 
   const LABELS = {
@@ -65,6 +65,8 @@
   };
 
   const $ = (id) => document.getElementById(id);
+  /** SVG do icons.js (ou o próprio texto, se não houver o ícone). */
+  const ic = (name, size = 14) => (window.rlIcons && window.rlIcons.has(name) ? window.rlIcon(name, size) : esc(name));
   const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const clone = (x) => JSON.parse(JSON.stringify(x));
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -90,6 +92,7 @@
         case 'invalid': return onInvalid(msg.message);
         case 'preview': return onPreview(msg);
         case 'theme': document.body.classList.toggle('dark', !!msg.dark); return;
+        case 'caps': S.caps = msg; if (S.model) renderAll(); return;
         case 'classes': return onClasses(msg);
         case 'clipboard': return pasteText(msg.text);
         case 'fields': return onFields(msg);
@@ -112,6 +115,14 @@
       $('title').textContent = msg.fileName;
     }
     const model = typeof msg.json === 'string' ? JSON.parse(msg.json) : msg.json;
+    if (msg.reset) {
+      // outro documento (app desktop): começa do zero, sem desfazer nem seleção do anterior
+      S.model = null;
+      S.sel = null;
+      S.colSel = null;
+      S.multi = [];
+      S.problems = [];
+    }
     S.invalid = null;
     $('banner').classList.remove('on');
     if (S.model && same(model, S.model)) return;
@@ -532,22 +543,22 @@
     const p = $('palette');
     let h = '<div class="sec">Blocos</div>';
     for (const [type, t] of Object.entries(TYPES)) {
-      h += `<div class="pitem" data-new="${type}"><span class="ic">${esc(t.icon)}</span>${esc(t.label)}</div>`;
+      h += `<div class="pitem" data-new="${type}"><span class="pic">${ic(t.icon, 16)}</span>${esc(t.label)}</div>`;
     }
     h += '<div class="sec">Prontos</div>';
     SNIPPETS.forEach((s, i) => {
-      h += `<div class="pitem" data-snip="${i}"><span class="ic">${esc(s.icon)}</span>${esc(s.label)}</div>`;
+      h += `<div class="pitem" data-snip="${i}"><span class="pic">${ic(s.icon, 16)}</span>${esc(s.label)}</div>`;
     });
     h += '<div class="sec">Campos dos dados</div>';
     const fields = S.model?.fields || [];
-    if (!fields.length) h += '<div class="hint">Declare os campos em ⚙ Relatório para arrastá-los para o layout.</div>';
+    if (!fields.length) h += '<div class="hint">Declare os campos em Relatório (barra de cima) para arrastá-los para o layout.</div>';
     h += fieldItems(fields, '', false);
     const params = S.model?.parameters || [];
     if (params.length) {
       h += '<div class="sec">Parâmetros</div>';
       for (const prm of params) {
         if (!prm?.name) continue;
-        h += `<div class="pitem field" data-param="${esc(prm.name)}"><span class="ic">$</span>${esc(prm.name)}<span class="ft">${esc(prm.type || '')}</span></div>`;
+        h += `<div class="pitem field" data-param="${esc(prm.name)}"><span class="pic">${ic('param', 14)}</span>${esc(prm.name)}<span class="ft">${esc(prm.type || '')}</span></div>`;
       }
     }
     p.innerHTML = h;
@@ -558,8 +569,8 @@
     for (const f of fields) {
       if (!f?.name) continue;
       const path = prefix ? prefix + '.' + f.name : f.name;
-      const icon = f.type === 'list' ? '≡' : f.type === 'object' ? '{}' : '•';
-      h += `<div class="pitem field" data-field="${esc(path)}" data-inlist="${inList ? 1 : 0}"><span class="ic">${icon}</span>${esc(f.label || f.name)}<span class="ft">${esc(f.type || 'string')}</span></div>`;
+      const icon = f.type === 'list' ? 'listField' : f.type === 'object' ? 'object' : 'dot';
+      h += `<div class="pitem field" data-field="${esc(path)}" data-inlist="${inList ? 1 : 0}"><span class="pic">${ic(icon, 14)}</span>${esc(f.label || f.name)}<span class="ft">${esc(f.type || 'string')}</span></div>`;
       if ((f.type === 'list' || f.type === 'object') && f.fields?.length) {
         // campos de uma lista são relativos ao item (usados dentro da tabela/lista dessa fonte)
         h += '<div class="fnest">' + fieldItems(f.fields, f.type === 'list' ? '' : path, inList || f.type === 'list') + '</div>';
@@ -648,8 +659,8 @@
     const cls = 'blk' + (sel ? ' sel' : '') + (el.visible ? ' hidden-cond' : '');
     let h = `<div class="${cls}" data-path="${esc(JSON.stringify(path))}" data-type="${esc(el.type)}">`;
     h += `<div class="tag">${esc(t ? t.label : el.type)}</div>`;
-    h += '<div class="acts"><button data-a="up" title="Subir">↑</button><button data-a="down" title="Descer">↓</button>'
-      + '<button data-a="copy" title="Copiar (Ctrl+C)">⎘</button><button data-a="dup" title="Duplicar (Ctrl+D)">⧉</button><button data-a="del" title="Remover (Del)">✕</button></div>';
+    h += '<div class="acts"><button data-a="up" title="Subir">' + ic('up') + '</button><button data-a="down" title="Descer">' + ic('down') + '</button>'
+      + '<button data-a="copy" title="Copiar (Ctrl+C)">' + ic('copy') + '</button><button data-a="dup" title="Duplicar (Ctrl+D)">' + ic('duplicate') + '</button><button data-a="del" title="Remover (Del)">' + ic('trash') + '</button></div>';
     h += body(el, path);
     return h + '</div>';
   }
@@ -729,7 +740,7 @@
           + `<div class="r-barcode-v">${chips(el.value || '')}</div></div>`;
       }
       case 'include':
-        return `<div class="r-include" style="${css}">⎘ sub-relatório <b>${esc(el.template || '?')}</b>${el.data ? ' · dados: <span class="chip">' + esc(el.data) + '</span>' : ''}</div>`;
+        return `<div class="r-include" style="${css}">${ic('include', 13)} sub-relatório <b>${esc(el.template || '?')}</b>${el.data ? ' · dados: <span class="chip">' + esc(el.data) + '</span>' : ''}</div>`;
       case 'chart':
         return chart(el, css);
       case 'crosstab': {
@@ -1200,7 +1211,7 @@
     const many = selection();
     if (many.length > 1) {
       head.innerHTML = `<span class="pt">${many.length} blocos selecionados</span>`
-        + '<button data-a="copy" title="Copiar">⎘</button><button data-a="dup" title="Duplicar">⧉</button><button data-a="del" class="danger" title="Remover">✕</button>';
+        + '<button data-a="copy" title="Copiar">' + ic('copy') + '</button><button data-a="dup" title="Duplicar">' + ic('duplicate') + '</button><button data-a="del" class="danger" title="Remover">' + ic('trash') + '</button>';
       head.addEventListener('click', (e) => {
         const a = e.target.closest('button')?.dataset.a;
         if (a) ({ copy: () => copyPaths(many), dup: () => duplicateMany(many), del: () => removeMany(many) })[a]();
@@ -1218,7 +1229,7 @@
       return;
     }
     if (!isElement(el)) {
-      head.innerHTML = '<span class="pt">⚙ Relatório</span>';
+      head.innerHTML = '<span class="pt">' + ic('settings') + ' Relatório</span>';
       box.append(head, bodyEl);
       if (!S.schema) { bodyEl.innerHTML = '<div class="hint">Schema não carregado.</div>'; return; }
       const props = { ...S.schema.properties };
@@ -1228,8 +1239,8 @@
     }
     const t = TYPES[el.type];
     head.innerHTML = `<span class="pt">${esc(t ? t.label : el.type)}</span>`
-      + '<button data-a="up" title="Subir">↑</button><button data-a="down" title="Descer">↓</button>'
-      + '<button data-a="dup" title="Duplicar">⧉</button><button data-a="del" class="danger" title="Remover">✕</button>';
+      + '<button data-a="up" title="Subir">' + ic('up') + '</button><button data-a="down" title="Descer">' + ic('down') + '</button>'
+      + '<button data-a="dup" title="Duplicar">' + ic('duplicate') + '</button><button data-a="del" class="danger" title="Remover">' + ic('trash') + '</button>';
     head.addEventListener('click', (e) => {
       const a = e.target.closest('button')?.dataset.a;
       const p = S.sel;
@@ -1417,7 +1428,7 @@
       const card = document.createElement('div');
       card.className = 'card' + (S.open.has(ok) ? ' open' : '');
       card.innerHTML = `<div class="ch"><span class="sum">${esc(summary(key, item))}</span>`
-        + '<button data-a="up" title="Subir">↑</button><button data-a="down" title="Descer">↓</button><button data-a="del" title="Remover">✕</button></div><div class="cb"></div>';
+        + '<button data-a="up" title="Subir">' + ic('up') + '</button><button data-a="down" title="Descer">' + ic('down') + '</button><button data-a="del" title="Remover">' + ic('trash') + '</button></div><div class="cb"></div>';
       card.querySelector('.ch').addEventListener('click', (e) => {
         const a = e.target.closest('button')?.dataset.a;
         if (!a) {
@@ -1532,11 +1543,15 @@
     row.className = 'frow';
     row.innerHTML = `<label>${esc(LABELS.dataClass)}<span class="k">dataClass</span></label>
       <input type="text" list="dl-dataClass" placeholder="com.empresa.VendaDTO">
-      <div class="classbar"><button class="btn primary" type="button">⇩ Importar campos da classe</button><span class="cmsg"></span></div>
+      <div class="classbar"><button class="btn primary" type="button">Importar campos da classe</button><span class="cmsg"></span></div>
       <div class="desc">Lê os atributos da classe (record, POJO, Lombok, Kotlin) e preenche os campos abaixo. Listas e objetos viram campos aninhados.</div>`;
     const input = row.querySelector('input');
     const btn = row.querySelector('button');
     const cmsg = row.querySelector('.cmsg');
+    if (S.caps && S.caps.classes === false) {
+      row.querySelector('.classbar').remove();
+      row.querySelector('.desc').textContent = 'Importar os campos lendo a classe Java é do plugin do IntelliJ. Aqui, declare os campos abaixo.';
+    }
     input.value = obj.dataClass || '';
     if (!document.getElementById('dl-dataClass')) {
       const dl = document.createElement('datalist');
@@ -1645,7 +1660,7 @@
     if (!list.length) return;
     const box = document.createElement('div');
     box.className = 'pwarn';
-    box.innerHTML = '<b>⚠ Avisos</b>' + list.map((p) => `<div>${esc(p.message)}</div>`).join('');
+    box.innerHTML = '<b>' + ic('warn', 13) + ' Avisos</b>' + list.map((p) => `<div>${esc(p.message)}</div>`).join('');
     bodyEl.prepend(box);
   }
 
@@ -1754,6 +1769,7 @@
     else if (window.relatoMockHost) window.relatoMockHost({ type: 'ready' });
   }
 
+  if (window.rlIcons) window.rlIcons.hydrate();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

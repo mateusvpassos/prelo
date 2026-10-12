@@ -42,6 +42,10 @@ public final class RelatoCli {
                 case "render" -> render(rest);
                 case "check" -> check(rest);
                 case "serve" -> serve(rest);
+                case "engine" -> {
+                    RelatoEngine.run();
+                    yield 0;
+                }
                 default -> {
                     System.err.println("comando desconhecido: " + cmd);
                     usage();

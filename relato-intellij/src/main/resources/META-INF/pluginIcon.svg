@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="40" height="40">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22303a"/><stop offset="1" stop-color="#0d1215"/>
+    </linearGradient>
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="130" y1="120" x2="400" y2="400">
+      <stop offset="0" stop-color="#4ade80"/><stop offset=".5" stop-color="#14b8a6"/><stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#14b8a6" stop-opacity=".32"/><stop offset="1" stop-color="#14b8a6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="210" fill="url(#glow)"/>
+  <rect x="17.5" y="17.5" width="477" height="477" rx="110.5" fill="none" stroke="#fff" stroke-opacity=".09" stroke-width="3"/>
+  <!-- monograma R com corte, no mesmo traço do K do Kino e do S do Strata -->
+  <g stroke="url(#g)" stroke-width="66" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <line x1="164" y1="140" x2="164" y2="372"/>
+    <path d="M238 140 H290 A58 58 0 0 1 290 256 H238"/>
+    <line x1="300" y1="326" x2="350" y2="372"/>
+  </g>
+</svg>

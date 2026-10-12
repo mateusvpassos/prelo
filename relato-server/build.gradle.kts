@@ -8,6 +8,7 @@ repositories { mavenCentral() }
 dependencies {
     implementation(project(":relato-core"))
     implementation(project(":relato-fonts"))
+    implementation("org.apache.pdfbox:pdfbox:3.0.7")
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
     testImplementation("org.apache.pdfbox:pdfbox:3.0.7")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

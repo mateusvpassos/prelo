@@ -4,22 +4,31 @@
 <meta charset="UTF-8">
 <title>Relato Designer</title>
 <link rel="stylesheet" href="designer.css">
+<script src="icons.js"></script>
 </head>
 <body>
 <div id="app">
   <div id="toolbar">
     <span class="title" id="title">Relato</span>
-    <button class="tbtn" id="undo" title="Desfazer (Ctrl+Z)">↶ Desfazer</button>
-    <button class="tbtn" id="redo" title="Refazer (Ctrl+Y)">↷ Refazer</button>
+    <div class="grp">
+      <button class="tbtn icon" id="undo" title="Desfazer (Ctrl+Z)"><i data-icon="undo"></i></button>
+      <button class="tbtn icon" id="redo" title="Refazer (Ctrl+Y)"><i data-icon="redo"></i></button>
+    </div>
     <span class="spacer"></span>
     <span class="status" id="status"></span>
-    <button class="tbtn" id="zoomOut" title="Diminuir">−</button>
-    <button class="tbtn" id="zoomFit" title="Ajustar à largura"><span id="zoomLabel">100%</span></button>
-    <button class="tbtn" id="zoomIn" title="Aumentar">+</button>
-    <button class="tbtn" id="reportProps" title="Página, parâmetros e campos do relatório">⚙ Relatório</button>
-    <button class="tbtn" id="pasteBtn" title="Colar blocos (Ctrl+V)">📋 Colar</button>
-    <button class="tbtn" id="splitPreview" title="Layout e PDF lado a lado, atualizando sozinho">◧ Lado a lado</button>
-    <button class="tbtn" id="togglePreview" title="Ver o PDF gerado com os dados de exemplo">▶ Preview PDF</button>
+    <div class="grp">
+      <button class="tbtn icon" id="zoomOut" title="Diminuir"><i data-icon="zoomOut"></i></button>
+      <button class="tbtn zoom" id="zoomFit" title="Ajustar à largura"><span id="zoomLabel">100%</span></button>
+      <button class="tbtn icon" id="zoomIn" title="Aumentar"><i data-icon="zoomIn"></i></button>
+    </div>
+    <span class="vsep"></span>
+    <button class="tbtn" id="reportProps" title="Página, parâmetros e campos do relatório"><i data-icon="settings"></i>Relatório</button>
+    <button class="tbtn icon" id="pasteBtn" title="Colar blocos (Ctrl+V)"><i data-icon="paste"></i></button>
+    <span class="vsep"></span>
+    <div class="seg">
+      <button class="tbtn" id="splitPreview" title="Layout e PDF lado a lado, atualizando sozinho"><i data-icon="split"></i>Lado a lado</button>
+      <button class="tbtn" id="togglePreview" title="Ver o PDF gerado com os dados de exemplo"><i data-icon="eye"></i>PDF</button>
+    </div>
   </div>
   <div id="palette"></div>
   <div id="center">

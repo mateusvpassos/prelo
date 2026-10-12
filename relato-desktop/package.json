@@ -1,0 +1,49 @@
+{
+  "name": "relato-desktop",
+  "version": "0.1.0",
+  "description": "Relato — designer de relatórios desktop (Electron + motor Java)",
+  "main": "main.js",
+  "private": true,
+  "author": "Mateus Vinicius dos Passos",
+  "scripts": {
+    "prepare-app": "node scripts/prepare.js",
+    "start": "node scripts/prepare.js --quick && electron .",
+    "icon": "electron scripts/make-icon.js",
+    "shots": "electron scripts/screenshots.js",
+    "dist": "node scripts/prepare.js --runtime && electron-builder --win nsis",
+    "dist:dir": "node scripts/prepare.js --runtime && electron-builder --win --dir"
+  },
+  "build": {
+    "appId": "com.mateusvpassos.relato",
+    "productName": "Relato",
+    "files": [
+      "main.js",
+      "preload.js",
+      "engine.js",
+      "renderer/**/*"
+    ],
+    "extraResources": [
+      { "from": "build-resources/engine", "to": "engine" },
+      { "from": "build-resources/examples", "to": "examples" }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Relato",
+      "artifactName": "Relato-Setup-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3"
+  }
+}

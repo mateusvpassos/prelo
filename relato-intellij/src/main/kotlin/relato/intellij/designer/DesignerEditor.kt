@@ -68,11 +68,18 @@ class DesignerEditor(project: Project, private val file: VirtualFile) : UserData
 object DesignerHtml {
     fun page(): String {
         val html = res("designer.html")
+        // fontes viram data URI: o loadHTML não tem base para resolver caminhos relativos
+        val css = Regex("url\\('fonts/([\\w.-]+)'\\)").replace(res("designer.css")) {
+            "url('data:font/woff2;base64," + java.util.Base64.getEncoder().encodeToString(bytes("fonts/" + it.groupValues[1])) + "')"
+        }
         return html
-            .replace("<link rel=\"stylesheet\" href=\"designer.css\">", "<style>\n${res("designer.css")}\n</style>")
+            .replace("<link rel=\"stylesheet\" href=\"designer.css\">", "<style>\n$css\n</style>")
+            .replace("<script src=\"icons.js\"></script>", "<script>\n${res("icons.js")}\n</script>")
             .replace("<script src=\"designer.js\"></script>", "<script>\n${res("designer.js")}\n</script>")
     }
 
-    private fun res(name: String): String =
-        DesignerHtml::class.java.getResourceAsStream("/designer/$name")!!.use { String(it.readAllBytes(), Charsets.UTF_8) }
+    private fun bytes(name: String): ByteArray =
+        DesignerHtml::class.java.getResourceAsStream("/designer/$name")!!.use { it.readAllBytes() }
+
+    private fun res(name: String): String = String(bytes(name), Charsets.UTF_8)
 }

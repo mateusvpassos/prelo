@@ -18,6 +18,9 @@ Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON decla
 | `relato-quarkus` | producer CDI (`@Inject Relato`) + `ReportResponses` JAX-RS |
 | `relato-server` | linha de comando (`render`, `check`) e serviço HTTP para gerar relatórios de qualquer linguagem |
 | `relato-intellij` | plugin: designer visual, editor JSON com preview, campos a partir de DTO, migração de `.jrxml` |
+| [`relato-desktop`](relato-desktop) | app Windows (Electron) com o mesmo designer e Java embutido: monta e exporta relatórios sem IDE |
+
+![Relato desktop](docs/desktop/lado-a-lado.png)
 
 ## Instalar (local)
 
@@ -236,6 +239,10 @@ Uma propriedade que resulta vazia é descartada.
 - Na barra: zoom, **Dados de exemplo** (cria/abre o sample) e exportar PDF/XLSX/HTML.
 - Paleta do designer inclui gráfico, tabela cruzada, etiquetas e texto formatado, e os prontos *QR Pix* e *Boleto (ITF)*.
 - `New → Relatório Relato` cria um template inicial.
+
+## App desktop (`relato-desktop`)
+
+Para quem não usa IntelliJ (ou para montar o layout com calma): instale `relato-desktop/dist/Relato-Setup-0.1.0.exe`. Não precisa de Java instalado. Tela inicial com exemplos, designer, preview lado a lado, editor de dados de exemplo e exportação para PDF, XLSX, CSV e HTML. Detalhes e build em [relato-desktop/README.md](relato-desktop/README.md).
 
 ## Linha de comando e serviço HTTP (`relato-server`)
 
