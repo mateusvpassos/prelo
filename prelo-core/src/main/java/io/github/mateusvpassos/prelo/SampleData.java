@@ -188,8 +188,11 @@ public final class SampleData {
                 Object v = out.get(f.name());
                 out.put(f.name(), "list".equals(f.type()) || "object".equals(f.type()) ? coerceData(v, f.fields()) : coerce(v, f.type()));
             }
-            // campos não declarados: datas ISO viram LocalDate
-            out.replaceAll((k, v) -> v instanceof String s && s.matches("\\d{4}-\\d{2}-\\d{2}") ? coerce(s, "date") : v);
+            // campos não declarados: datas ISO viram LocalDate, data e hora ISO viram LocalDateTime
+            out.replaceAll((k, v) -> !(v instanceof String s) ? v
+                    : s.matches("\\d{4}-\\d{2}-\\d{2}") ? coerce(s, "date")
+                    : s.matches("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2}(\\.\\d+)?)?") ? coerce(s, "datetime")
+                    : v);
             return out;
         }
         return data;

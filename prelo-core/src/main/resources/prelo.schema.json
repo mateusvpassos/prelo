@@ -1221,7 +1221,7 @@
         },
         "width": {
           "type": "string",
-          "default": "90mm"
+          "description": "Largura de cada etiqueta (ex.: 90mm). Sem valor, as colunas dividem a largura da página."
         },
         "height": {
           "type": "string",

@@ -192,7 +192,8 @@ public final class Evaluator {
         String w = b.width() != null ? b.width() : twoD ? "25mm" : "60mm";
         String h = b.height() != null ? b.height() : twoD ? w : "15mm";
         byte[] png = Barcodes.png(value, fmt);
-        String imgCss = Css.join("width:" + w, "height:" + h, css);
+        // max-width:none: com o max-width:100% padrão, o openhtmltopdf ignora a largura quando o PNG é mais largo que a coluna
+        String imgCss = Css.join("width:" + w, "height:" + h, "max-width:none", css);
         Node.Image img = new Node.Image(dataUri(png), imgCss, align(b.align()));
         if (twoD || !Boolean.TRUE.equals(b.showText())) return img;
         List<Node> parts = new ArrayList<>();
@@ -314,7 +315,7 @@ public final class Evaluator {
             for (int c = 0; c < copies; c++) out.add(content);
         }
         return new Node.Labels(out, l.columns() == null ? 2 : Math.max(1, l.columns()), l.rowsPerPage() == null ? 0 : Math.max(0, l.rowsPerPage()),
-                l.width() == null ? "90mm" : l.width(), l.height() == null ? "45mm" : l.height(), l.gap() == null ? "3mm" : l.gap(),
+                l.width(), l.height() == null ? "45mm" : l.height(), l.gap() == null ? "3mm" : l.gap(),
                 Boolean.TRUE.equals(l.border()), l.padding() == null ? "3mm" : l.padding(), css);
     }
 

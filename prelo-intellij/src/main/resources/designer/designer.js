@@ -752,8 +752,9 @@
       }
       case 'labels': {
         const n = Math.max(1, el.columns || 2);
-        const w = esc(el.width || '90mm'), hh = esc(el.height || '45mm');
-        let h = `<div class="r-labels-src">${n} por linha${el.rowsPerPage ? ' · ' + el.rowsPerPage + ' linhas por folha' : ''} · ${w} × ${hh}`
+        const g = esc(el.gap || '3mm');
+        const w = el.width ? esc(el.width) : `calc((100% - ${Math.min(n, 4) - 1} * ${g}) / ${Math.min(n, 4)})`, hh = esc(el.height || '45mm');
+        let h = `<div class="r-labels-src">${n} por linha${el.rowsPerPage ? ' · ' + el.rowsPerPage + ' linhas por folha' : ''} · ${el.width ? w : 'largura automática'} × ${hh}`
           + `${el.source && el.source !== 'rows' ? ' · fonte: <span class="chip">' + esc(el.source) + '</span>' : ''}${el.copies ? ' · cópias: ' + chips(String(el.copies)) : ''}</div>`;
         h += `<div class="r-labels" style="${css}">`;
         h += `<div class="r-label${el.border ? ' cut' : ''}" style="width:${w};min-height:${hh};padding:${esc(el.padding || '3mm')}">${zone(path.concat('content'), el.content || [], 'Arraste o conteúdo da etiqueta')}</div>`;

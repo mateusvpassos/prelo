@@ -65,6 +65,47 @@ class RecursosTest {
     }
 
     @Test
+    void sampleConverteDataEHoraIsoSemFields() {
+        var t = Templates.parse("""
+                {"body":[{"type":"table","columns":[{"header":"Quando","value":"${dt}","format":"datetime"}]}]}
+                """);
+        var s = SampleData.parse("""
+                {"data":[{"d":"2026-01-05","dt":"2026-01-05T14:30:00","txt":"2026-01-05 x"}]}
+                """, t);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> row = ((List<Map<String, Object>>) s.data()).get(0);
+        assertEquals(java.time.LocalDate.of(2026, 1, 5), row.get("d"));
+        assertEquals(java.time.LocalDateTime.of(2026, 1, 5, 14, 30), row.get("dt"));
+        assertEquals("2026-01-05 x", row.get("txt"));
+        String csv = new String(prelo.report(t).data(s.data()).csv(), java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(csv.contains("05/01/2026 14:30"), csv);
+    }
+
+    @Test
+    void boletoRespeitaLarguraMesmoComPngMaisLargoQueAColuna() {
+        // PNG do ITF de 44 dígitos é mais largo que a página; sem max-width:none o PDF esticava até a margem
+        var t = Templates.parse("""
+                {"body":[{"type":"barcode","format":"itf","value":"${boleto('23793381286000782713695000063305975520000370000')}","width":"103mm","height":"13mm"}]}
+                """);
+        String html = prelo.report(t).data(Map.of()).html();
+        assertTrue(html.contains("width:103mm;height:13mm;max-width:none;"), html);
+    }
+
+    @Test
+    void etiquetasSemLarguraDividemAPagina() {
+        var t = Templates.parse("""
+                {"body":[{"type":"labels","columns":2,"gap":"5mm","content":[{"type":"text","value":"${n}"}]}]}
+                """);
+        String html = prelo.report(t).data(linhas(3)).html();
+        assertTrue(html.contains("width:100%;table-layout:fixed"), html);
+        assertTrue(html.contains("width:50.0000%"), html);
+        String fixa = prelo.report(Templates.parse("""
+                {"body":[{"type":"labels","width":"70mm","content":[{"type":"text","value":"${n}"}]}]}
+                """)).data(linhas(1)).html();
+        assertTrue(fixa.contains("width:70mm") && !fixa.contains("table-layout:fixed"), fixa);
+    }
+
+    @Test
     void codigoDeBarrasEQr() throws Exception {
         var t = Templates.parse("""
                 {"body":[

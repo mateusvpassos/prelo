@@ -240,13 +240,16 @@ final class HtmlRenderer {
         for (int start = 0; start < Math.max(total, 1); start += perPage) {
             int end = Math.min(total, start + perPage);
             boolean breakAfter = end < total && l.rowsPerPage() > 0;
-            sb.append("<table class=\"rl-labels\"").append(style(Css.join("border-spacing:" + l.gap(), l.css(),
+            // sem width: as colunas dividem a largura útil (90mm fixos estouravam a A4 com o espaçamento)
+            boolean fill = l.width() == null;
+            String w = fill ? String.format(java.util.Locale.ROOT, "%.4f%%", 100.0 / l.columns()) : l.width();
+            sb.append("<table class=\"rl-labels\"").append(style(Css.join("border-spacing:" + l.gap(), fill ? "width:100%;table-layout:fixed" : "", l.css(),
                     breakAfter ? "page-break-after:always" : ""))).append(">\n");
             for (int i = start; i < end; i += l.columns()) {
                 sb.append("<tr>");
                 for (int c = 0; c < l.columns(); c++) {
                     int k = i + c;
-                    String cell = Css.join("width:" + l.width(), "height:" + l.height(), "max-width:" + l.width(), "padding:0",
+                    String cell = Css.join("width:" + w, "height:" + l.height(), fill ? "" : "max-width:" + w, "padding:0",
                             l.border() ? "border:0.5pt dashed #9aa0a6" : "");
                     sb.append("<td class=\"rl-label\"").append(style(cell)).append('>');
                     if (k < end) {
@@ -354,7 +357,7 @@ final class HtmlRenderer {
     }
 
     private static final String BASE_CSS = """
-            body { font-family: sans-serif; font-size: 9pt; color: #222; margin: 0; line-height: 1.25; }
+            body { font-family: sans-serif; font-size: 9pt; color: #222; margin: 0; line-height: 1.25; word-wrap: break-word; }
             .rl-page-header { position: running(rlHeader); }
             table.rl-labels { border-collapse: separate; table-layout: fixed; margin: 0; }
             table.rl-labels tr { page-break-inside: avoid; }

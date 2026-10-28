@@ -58,10 +58,12 @@ if (runtime) {
   if (!jdk) throw new Error('nenhum JDK com jmods encontrado (defina PRELO_JLINK_JDK)');
   const out = path.join(engineDst, 'runtime');
   fs.rmSync(out, { recursive: true, force: true });
-  const modules = ['java.base', 'java.desktop', 'java.xml', 'java.logging', 'java.sql', 'java.naming', 'jdk.httpserver', 'jdk.charsets', 'jdk.crypto.ec', 'jdk.zipfs', 'jdk.unsupported'];
+  const modules = ['java.base', 'java.desktop', 'java.xml', 'java.logging', 'java.sql', 'java.naming', 'jdk.httpserver', 'jdk.charsets', 'jdk.crypto.ec', 'jdk.zipfs', 'jdk.unsupported',
+    // sem jdk.localedata o Java só tem en: números, moeda e meses sairiam em inglês
+    'jdk.localedata'];
   console.log('jlink com ' + jdk);
   execFileSync(path.join(jdk, 'bin', 'jlink'), [
-    '--add-modules', modules.join(','), '--strip-debug', '--no-header-files', '--no-man-pages', '--compress=2', '--output', out,
+    '--add-modules', modules.join(','), '--include-locales=en,pt', '--strip-debug', '--no-header-files', '--no-man-pages', '--compress=2', '--output', out,
   ], { stdio: 'inherit' });
   console.log('runtime pronto em ' + out);
 }
