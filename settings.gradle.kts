@@ -5,5 +5,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "relato"
-include("relato-core", "relato-fonts", "relato-jrxml", "relato-spring-boot-starter", "relato-quarkus", "relato-server", "relato-intellij")
+rootProject.name = "prelo"
+include("prelo-core", "prelo-fonts", "prelo-jrxml", "prelo-spring-boot-starter", "prelo-quarkus", "prelo-server", "prelo-intellij")

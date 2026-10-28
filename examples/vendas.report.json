@@ -57,7 +57,7 @@
   "pageFooter": [
     { "type": "line" },
     { "type": "row", "columns": [
-      { "content": [ { "type": "text", "value": "relato · ${empresa}", "style": { "size": 7, "color": "#888" } } ] },
+      { "content": [ { "type": "text", "value": "prelo · ${empresa}", "style": { "size": 7, "color": "#888" } } ] },
       { "align": "right", "content": [ { "type": "text", "value": "Página ${page} de ${pages}", "style": { "size": 8 } } ] }
     ] }
   ]

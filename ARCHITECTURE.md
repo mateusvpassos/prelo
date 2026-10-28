@@ -1,11 +1,11 @@
-# Arquitetura do relato
+# Arquitetura do prelo
 
 Guia para quem vai mexer no código. Para *usar* a biblioteca, veja o [README](README.md) e o [TUTORIAL](TUTORIAL.md).
 
 ## Visão geral
 
 ```
-                     ┌──────────────────────── relato-core ─────────────────────────┐
+                     ┌──────────────────────── prelo-core ─────────────────────────┐
  *.report.json ──►   │ Templates.parse ─► ReportTemplate (model)                    │
                      │        │                                                      │
  dados + params ──►  │   Evaluator ──(expr: Parser/Scope/Functions/Formatter)──►     │
@@ -21,43 +21,43 @@ Guia para quem vai mexer no código. Para *usar* a biblioteca, veja o [README](R
                      └───────────────────────────────────────────────────────────────┘
       ▲                      ▲                          ▲
       │                      │                          │
- relato-intellij       relato-spring-boot-starter   relato-jrxml (.jrxml ─► .report.json)
- (designer, preview,   relato-quarkus               relato-fonts (FontSource via ServiceLoader)
+ prelo-intellij       prelo-spring-boot-starter   prelo-jrxml (.jrxml ─► .report.json)
+ (designer, preview,   prelo-quarkus               prelo-fonts (FontSource via ServiceLoader)
   FieldCheck no JSON)
 ```
 
-A regra que orienta tudo: **o template é dado, não código**. O JSON é a fonte da verdade. A engine, o designer, o preview, o conversor do Jasper e o autocomplete são leitores e escritores desse mesmo JSON, e o `relato.schema.json` é o contrato comum entre eles.
+A regra que orienta tudo: **o template é dado, não código**. O JSON é a fonte da verdade. A engine, o designer, o preview, o conversor do Jasper e o autocomplete são leitores e escritores desse mesmo JSON, e o `prelo.schema.json` é o contrato comum entre eles.
 
 ## Módulos
 
 | Módulo | Depende de | Papel |
 |---|---|---|
-| `relato-core` | Jackson, openhtmltopdf, PDFBox, fastexcel, ZXing | engine; Java 17, sem framework |
-| `relato-fonts` | core (compileOnly) | DejaVu Sans registrada via `ServiceLoader` |
-| `relato-jrxml` | core | conversor Jasper, CLI, ligação de sub-relatórios |
-| `relato-spring-boot-starter` | core, Spring (compileOnly) | auto-config + `ReportResponses` |
-| `relato-quarkus` | core, CDI/MP Config/JAX-RS (compileOnly) | producer CDI (`META-INF/beans.xml`) + `ReportResponses` |
-| `relato-server` | core, fonts | CLI (`render`, `check`) e serviço HTTP (JDK `HttpServer`); `fatJar` gera o jar único |
-| `relato-intellij` | core, jrxml, PDFBox, plataforma IntelliJ | plugin (Kotlin + designer em HTML/JS) |
+| `prelo-core` | Jackson, openhtmltopdf, PDFBox, fastexcel, ZXing | engine; Java 17, sem framework |
+| `prelo-fonts` | core (compileOnly) | DejaVu Sans registrada via `ServiceLoader` |
+| `prelo-jrxml` | core | conversor Jasper, CLI, ligação de sub-relatórios |
+| `prelo-spring-boot-starter` | core, Spring (compileOnly) | auto-config + `ReportResponses` |
+| `prelo-quarkus` | core, CDI/MP Config/JAX-RS (compileOnly) | producer CDI (`META-INF/beans.xml`) + `ReportResponses` |
+| `prelo-server` | core, fonts | CLI (`render`, `check`) e serviço HTTP (JDK `HttpServer`); `fatJar` gera o jar único |
+| `prelo-intellij` | core, jrxml, PDFBox, plataforma IntelliJ | plugin (Kotlin + designer em HTML/JS) |
 | `demo-spring`, `demo-quarkus` | artefatos do `mavenLocal` | builds separados, fora do `settings.gradle.kts` |
 
 As integrações só declaram as APIs de framework como `compileOnly`. Quem traz Spring ou Quarkus é o projeto do usuário.
 
 ---
 
-## relato-core
+## prelo-core
 
-Pacote base: `io.github.mateusvpassos.relato`.
+Pacote base: `io.github.mateusvpassos.prelo`.
 
 ### API pública (pacote raiz)
 
-- **`Relato`**: fachada thread-safe. O builder reúne loader, locale/zona/padrões de data, resolver de recursos, fontes e `chunkRows`. Guarda os templates em cache (`ConcurrentHashMap`) se `cache=true`.
+- **`Prelo`**: fachada thread-safe. O builder reúne loader, locale/zona/padrões de data, resolver de recursos, fontes e `chunkRows`. Guarda os templates em cache (`ConcurrentHashMap`) se `cache=true`.
 - **`ReportRequest`**: um pedido (dados + parâmetros), com as saídas `pdf()/xlsx()/html()/render(Format)`. Não é thread-safe.
 - **`Templates`**: parse do JSON com Jackson. Tem `FAIL_ON_UNKNOWN_PROPERTIES` ligado de propósito, para pegar erro de digitação, e aceita comentários e vírgula sobrando. Traduz as exceções do Jackson para mensagens com o caminho (`body[1].columns[0]`).
 - **`TemplateLoader`**: carrega por nome, do classpath ou de uma pasta, acrescentando o sufixo `.report.json`.
 - **`ResourceResolver`**: resolve `src` de imagens (`classpath:`, arquivo relativo a uma pasta base).
 - **`SampleData`**: dados de exemplo. Lê um `*.sample.json` ou inventa valores a partir de `fields` (valor plausível pelo nome e tipo). Usado pelo plugin e pelos testes.
-- **`FontSource`**: ponto de extensão (SPI) para fontes; `relato-fonts` implementa.
+- **`FontSource`**: ponto de extensão (SPI) para fontes; `prelo-fonts` implementa.
 - **`Rows`**: adaptador JDBC (`ResultSet` → lista de mapas).
 
 ### `model`: o template tipado
@@ -105,7 +105,7 @@ parâmetros (params/param/cada parâmetro)      ← raiz; mapa tolerante (Values
 - Aplica `visible`.
 - Avalia os textos, resolve imagens para data URI e gera os códigos de barras (`Barcodes`, ZXing → PNG).
 - **Tabelas**: ordena (`sortBy`), agrupa com `LinkedHashMap` (mantém a ordem de chegada, sem exigir dados ordenados) e emite `DataRow`, `GroupHeader` e `TotalRow` já com os valores calculados.
-- **`include`**: busca o outro template pelo resolvedor recebido (`Relato::template`), monta uma cadeia de escopos nova para ele e avalia o corpo dele (com limite de profundidade).
+- **`include`**: busca o outro template pelo resolvedor recebido (`Prelo::template`), monta uma cadeia de escopos nova para ele e avalia o corpo dele (com limite de profundidade).
 - Cada falha é reembrulhada em `ReportException` com o caminho (`body[3] (table) > sub.body[0]...`).
 
 **`Node`**: árvore imutável já resolvida; nenhuma expressão sobra. Ela desacopla os formatos de saída: HTML/PDF e XLSX consomem a mesma árvore. `Cell` guarda o texto formatado e o **valor cru**, que o XLSX usa para gravar número e data de verdade.
@@ -171,10 +171,10 @@ Consumidores: o anotador e o autocomplete do plugin, e o designer (via `Designer
 
 > Ao mudar uma regra de escopo no `Evaluator`, mude também no `FieldCheck`. Os testes `FieldCheckTest` validam que os exemplos reais não geram avisos.
 
-### Schema: `relato-core/src/main/resources/relato.schema.json`
+### Schema: `prelo-core/src/main/resources/prelo.schema.json`
 
 É o contrato. Ele alimenta:
-1. o autocomplete e a validação do JSON no IntelliJ (`RelatoSchemaProviderFactory`);
+1. o autocomplete e a validação do JSON no IntelliJ (`PreloSchemaProviderFactory`);
 2. o **painel de propriedades do designer**, gerado do schema (`objectForm` em `designer.js`);
 3. a documentação ao passar o mouse.
 
@@ -182,18 +182,18 @@ Todo campo novo no model precisa entrar aqui, senão some do designer.
 
 ---
 
-## relato-intellij (plugin)
+## prelo-intellij (plugin)
 
 Kotlin; SDK = IDE local (`ideaLocalPath`). As integrações opcionais ficam em `depends optional` com config files próprios:
-- `relato-json.xml`: schema, anotador, autocomplete, intention (precisa do plugin JSON);
-- `relato-jcef.xml`: vazio; só garante as classes JCEF no 2026.2+;
-- `relato-java.xml`: vazio; libera as classes PSI Java para `JavaClassFields`.
+- `prelo-json.xml`: schema, anotador, autocomplete, intention (precisa do plugin JSON);
+- `prelo-jcef.xml`: vazio; só garante as classes JCEF no 2026.2+;
+- `prelo-java.xml`: vazio; libera as classes PSI Java para `JavaClassFields`.
 
 As classes que tocam APIs opcionais ficam isoladas (`DesignerBrowser`, `JavaClassFields`) e são chamadas dentro de `try/catch (NoClassDefFoundError)`.
 
 | Parte | Arquivos | Como funciona |
 |---|---|---|
-| Editor "Relato" | `ReportEditorProvider`, `ReportPanel`, `PreviewEngine`, `PreviewInputs` | `TextEditorWithPreview`: texto + painel Swing. `PreviewEngine` (sem dependência da IDE, testável) faz template + sample → PDF → imagens PDFBox. Debounce de 500 ms em alterações do documento e do `.sample.json` |
+| Editor "Prelo" | `ReportEditorProvider`, `ReportPanel`, `PreviewEngine`, `PreviewInputs` | `TextEditorWithPreview`: texto + painel Swing. `PreviewEngine` (sem dependência da IDE, testável) faz template + sample → PDF → imagens PDFBox. Debounce de 500 ms em alterações do documento e do `.sample.json` |
 | Designer | `designer/DesignerEditor`, `DesignerBrowser`, `DesignerController`, `resources/designer/*` | aba própria (`PLACE_AFTER_DEFAULT_EDITOR`); ver abaixo |
 | Campos de DTO | `fields/JavaClassFields`, `ClassFields`, `JsonText` | PSI: record, getters (inclui os gerados por Lombok e Kotlin), campos; tipos mapeados; listas por `Iterable<T>`; ciclos e profundidade limitados; `merge` preserva `label`/`sample` |
 | JSON | `json/FieldCheckAnnotator` (ExternalAnnotator), `FieldCompletionContributor`, `ImportFieldsIntention`, `JsonPaths` | `JsonPaths` traduz entre o caminho do `FieldCheck` (`["body",3,"value"]`) e o PSI JSON, e entre índice decodificado e texto com escapes |
@@ -202,7 +202,7 @@ As classes que tocam APIs opcionais ficam isoladas (`DesignerBrowser`, `JavaClas
 ### Designer (HTML/JS dentro do JCEF)
 
 ```
-designer.js (window.relato)                      DesignerController (Kotlin)
+designer.js (window.prelo)                      DesignerController (Kotlin)
 ──────────────────────────                       ──────────────────────────
 ready ───────────────────────────────────────►   envia theme + load{json, schema, fileName}
 change{json} ────────────────────────────────►   WriteCommandAction: replaceMinimal(doc)  (undo da IDE)
@@ -213,16 +213,16 @@ copy{text} / paste ────────────────────�
 ◄──────── load (quando o texto muda no editor, com debounce; o próprio eco é suprimido pela flag `applying`)
 ```
 
-- **Transporte**: `JBCefJSQuery` (JS → Kotlin) injetado no `onLoadEnd` como `window.relatoHost`; Kotlin → JS por `executeJavaScript("window.relato.receive(...)")`. O client precisa de `JS_QUERY_POOL_SIZE`, senão o JSQuery falha se o navegador nativo já foi criado.
+- **Transporte**: `JBCefJSQuery` (JS → Kotlin) injetado no `onLoadEnd` como `window.preloHost`; Kotlin → JS por `executeJavaScript("window.prelo.receive(...)")`. O client precisa de `JS_QUERY_POOL_SIZE`, senão o JSQuery falha se o navegador nativo já foi criado.
 - **Estado no JS**: o modelo é o próprio objeto JSON (`S.model`). Toda mudança passa por `commit(fn, {merge})`: guarda um snapshot para desfazer, envia `change` e redesenha. `merge` junta digitação seguida num passo só.
 - **Serialização**: `serialize()`/`pretty()` gravam objetos curtos numa linha, no mesmo estilo dos exemplos. O `JsonPretty` do conversor e o `JsonText` do plugin seguem a mesma regra.
 - **Arrasto**: eventos de mouse (`mousedown/move/up` + `elementFromPoint`), **não** HTML5 DnD, que falha no JCEF com renderização off-screen. Zonas de soltar são `.dz[data-zone=<caminho JSON>]`; blocos são `.blk[data-path=<caminho>]`.
 - **Painel de propriedades**: gerado do schema (`objectForm`/`scalarInput`/`arrayEditor`/`styleEditor`). Rótulos em português em `LABELS`. Campos especiais: `dataClass` (`classInput`), `style`.
-- **Desenvolvimento fora da IDE**: `dev/designer-demo.html` carrega os mesmos arquivos com um host simulado (`window.relatoMockHost`); `python -m http.server` na raiz.
+- **Desenvolvimento fora da IDE**: `dev/designer-demo.html` carrega os mesmos arquivos com um host simulado (`window.preloMockHost`); `python -m http.server` na raiz.
 
 ---
 
-## relato-jrxml (migração)
+## prelo-jrxml (migração)
 
 1. **`JrxmlConverter`**:
    - **Leitura**: decodifica (UTF-8 estrito, senão windows-1252) e faz o parse do DOM sem DTD.
@@ -231,23 +231,23 @@ copy{text} / paste ────────────────────�
    - **Grupos e totais**: `groupExpression` vira `by`; rodapés com `$V{soma}` viram `total` da coluna na mesma posição (`collectTotals`).
    - **Sub-relatórios**: `subreport` vira `include`. O nome vem de um literal `.jasper`, das dicas de parâmetro ou do nome mais parecido entre os templates conhecidos.
    - **Avisos** vão para a lista e para comentários `//` no topo do JSON.
-2. **`JavaExpr`**: parser de um subconjunto de Java que **gera** expressões do relato (e não as avalia): métodos comuns → funções, getters → propriedades, `SimpleDateFormat(...).format(x)` → `format(x, '...')`, concatenação com literal → template com texto. O que não conhece lança `Unsupported`, e o conversor registra o aviso.
+2. **`JavaExpr`**: parser de um subconjunto de Java que **gera** expressões do prelo (e não as avalia): métodos comuns → funções, getters → propriedades, `SimpleDateFormat(...).format(x)` → `format(x, '...')`, concatenação com literal → template com texto. O que não conhece lança `Unsupported`, e o conversor registra o aviso.
 3. **`SubreportHints`**: regex nos `.java`/`.kt`/`.jsp` por `put("param", ... "Nome.jasper")`.
 4. **`JrxmlLinker`**: segunda passada em lote. Os campos do template incluído viram subcampos da lista usada como `data` no pai. O Jasper não informa o tipo do elemento de uma `List`.
 
-Validação: `CorpusTest` com `-Drelato.jrxml.corpus=...` (arquivos reais fora do repositório).
+Validação: `CorpusTest` com `-Dprelo.jrxml.corpus=...` (arquivos reais fora do repositório).
 
 ---
 
-## relato-server
+## prelo-server
 
-- `RelatoCli`: `render` (dados no formato do `*.sample.json`; sem `-d` usa o sample ao lado), `check` (FieldCheck em arquivos ou pastas, código de saída 1 para CI) e `serve`. Silencia o log do openhtmltopdf (`XRLog`) e do fontbox, salvo com `RELATO_VERBOSE`.
-- `RelatoServer`: `HttpServer` com pool fixo. Templates por nome da pasta (`cache(false)`: editar vale na hora) ou no corpo. Segurança: `127.0.0.1` por padrão, `Bearer` comparado em tempo constante, nomes validados também no `include` (`confined(TemplateLoader)`), `ResourceResolver` preso à pasta, corpo até 64 MB. O `HttpExchange` é fechado no `finally` (um `try (ex)` fecharia antes do `catch` e a resposta de erro sumiria).
+- `PreloCli`: `render` (dados no formato do `*.sample.json`; sem `-d` usa o sample ao lado), `check` (FieldCheck em arquivos ou pastas, código de saída 1 para CI) e `serve`. Silencia o log do openhtmltopdf (`XRLog`) e do fontbox, salvo com `PRELO_VERBOSE`.
+- `PreloServer`: `HttpServer` com pool fixo. Templates por nome da pasta (`cache(false)`: editar vale na hora) ou no corpo. Segurança: `127.0.0.1` por padrão, `Bearer` comparado em tempo constante, nomes validados também no `include` (`confined(TemplateLoader)`), `ResourceResolver` preso à pasta, corpo até 64 MB. O `HttpExchange` é fechado no `finally` (um `try (ex)` fecharia antes do `catch` e a resposta de erro sumiria).
 
 ## Integrações
 
-- **Spring**: `RelatoAutoConfiguration` (`@AutoConfiguration`, registrada em `META-INF/spring/...AutoConfiguration.imports`), `@ConditionalOnMissingBean`, propriedades `relato.*` em `RelatoProperties`.
-- **Quarkus**: `RelatoProducer` com `@ConfigProperty` nos parâmetros do método producer. O `beans.xml` (`annotated`) faz o Quarkus indexar o jar, sem precisar de módulo de deployment.
+- **Spring**: `PreloAutoConfiguration` (`@AutoConfiguration`, registrada em `META-INF/spring/...AutoConfiguration.imports`), `@ConditionalOnMissingBean`, propriedades `prelo.*` em `PreloProperties`.
+- **Quarkus**: `PreloProducer` com `@ConfigProperty` nos parâmetros do método producer. O `beans.xml` (`annotated`) faz o Quarkus indexar o jar, sem precisar de módulo de deployment.
 
 ---
 
@@ -256,7 +256,7 @@ Validação: `CorpusTest` com `-Drelato.jrxml.corpus=...` (arquivos reais fora d
 ### Novo tipo de bloco
 
 1. `model/Element.java`: record + `@JsonSubTypes.Type`.
-2. `relato.schema.json`: `definitions.<tipo>`, o `enum` de `element.type` e o `allOf/if` correspondente.
+2. `prelo.schema.json`: `definitions.<tipo>`, o `enum` de `element.type` e o `allOf/if` correspondente.
 3. `render/Evaluator.element()`: produzir um `Node` (existente ou novo em `render/Node.java`).
 4. Se criou um `Node`: tratar em `HtmlRenderer.node()` e `XlsxRenderer.node()` (e em `PageTotals.children/replace` se ele tiver filhos).
 5. `check/FieldCheck.Walker.element()`: quais propriedades são texto com `${}` e quais são expressão pura.
@@ -291,12 +291,12 @@ Model + schema (o designer passa a mostrar sozinho) + `Evaluator`. Se ela contiv
 
 | Onde | O que cobre |
 |---|---|
-| `relato-core` | expressões, formatos, grupos/totais/paginação (lendo o texto do PDF), recursos (1ª página, marca d'água, barras, include, a transportar), equivalência do modo em blocos, FieldCheck; `NovidadesTest` (gráficos, etiquetas, markdown, crosstab, Pix/boleto, senha, CSV, estilo condicional); `GaleriaTest` renderiza `examples/` (`-Dgaleria=true` regrava `docs/galeria`); `PerfTest` opcional |
-| `relato-server` | HTTP (token, nomes, recursos confinados, erros 4xx) e CLI |
-| `relato-fonts` | Unicode no PDF |
-| `relato-jrxml` | tradução de expressões, conversão de um `.jrxml` sintético, lote real opcional |
-| `relato-spring-boot-starter` | auto-config + resposta HTTP |
-| `relato-intellij` | preview, schema/anotador/autocomplete/intention, controller do designer (sync, undo, clipboard), leitura de classes PSI, migração |
+| `prelo-core` | expressões, formatos, grupos/totais/paginação (lendo o texto do PDF), recursos (1ª página, marca d'água, barras, include, a transportar), equivalência do modo em blocos, FieldCheck; `NovidadesTest` (gráficos, etiquetas, markdown, crosstab, Pix/boleto, senha, CSV, estilo condicional); `GaleriaTest` renderiza `examples/` (`-Dgaleria=true` regrava `docs/galeria`); `PerfTest` opcional |
+| `prelo-server` | HTTP (token, nomes, recursos confinados, erros 4xx) e CLI |
+| `prelo-fonts` | Unicode no PDF |
+| `prelo-jrxml` | tradução de expressões, conversão de um `.jrxml` sintético, lote real opcional |
+| `prelo-spring-boot-starter` | auto-config + resposta HTTP |
+| `prelo-intellij` | preview, schema/anotador/autocomplete/intention, controller do designer (sync, undo, clipboard), leitura de classes PSI, migração |
 | `demo-spring`, `demo-quarkus` | ponta a ponta com a lib publicada |
 
-Os testes de PDF extraem o texto com PDFBox (`setSortByPosition(true)`) e salvam PNGs em `relato-core/build/out` para inspeção visual.
+Os testes de PDF extraem o texto com PDFBox (`setSortByPosition(true)`) e salvam PNGs em `prelo-core/build/out` para inspeção visual.

@@ -4,7 +4,7 @@ Exemplos prontos em [`examples/`](../examples). Cada `*.report.json` tem um `*.s
 template no IntelliJ para ver o preview, ou rode:
 
 ```bash
-./gradlew :relato-core:test --tests "*GaleriaTest*" -Dgaleria=true   # regenera estas imagens
+./gradlew :prelo-core:test --tests "*GaleriaTest*" -Dgaleria=true   # regenera estas imagens
 ```
 
 ## Painel com gráficos e tabela cruzada — [`painel.report.json`](../examples/painel.report.json)

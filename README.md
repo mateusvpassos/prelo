@@ -1,4 +1,4 @@
-# relato
+# prelo
 
 Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON declarativo, com plugin IntelliJ que mostra o preview enquanto você edita. É uma alternativa leve ao JasperReports.
 
@@ -11,16 +11,16 @@ Relatórios PDF/XLSX para Java (Spring, Quarkus, puro) a partir de um JSON decla
 
 | Módulo | O que é |
 |---|---|
-| `relato-core` | engine (Java 17+, sem framework) |
-| `relato-fonts` | opcional: DejaVu Sans (Unicode completo) como fonte padrão |
-| `relato-jrxml` | migração de `.jrxml` (JasperReports) para `.report.json` (CLI + usado pelo plugin) |
-| `relato-spring-boot-starter` | bean `Relato` + `ReportResponses` para controllers |
-| `relato-quarkus` | producer CDI (`@Inject Relato`) + `ReportResponses` JAX-RS |
-| `relato-server` | linha de comando (`render`, `check`) e serviço HTTP para gerar relatórios de qualquer linguagem |
-| `relato-intellij` | plugin: designer visual, editor JSON com preview, campos a partir de DTO, migração de `.jrxml` |
-| [`relato-desktop`](relato-desktop) | app Windows (Electron) com o mesmo designer e Java embutido: monta e exporta relatórios sem IDE |
+| `prelo-core` | engine (Java 17+, sem framework) |
+| `prelo-fonts` | opcional: DejaVu Sans (Unicode completo) como fonte padrão |
+| `prelo-jrxml` | migração de `.jrxml` (JasperReports) para `.report.json` (CLI + usado pelo plugin) |
+| `prelo-spring-boot-starter` | bean `Prelo` + `ReportResponses` para controllers |
+| `prelo-quarkus` | producer CDI (`@Inject Prelo`) + `ReportResponses` JAX-RS |
+| `prelo-server` | linha de comando (`render`, `check`) e serviço HTTP para gerar relatórios de qualquer linguagem |
+| `prelo-intellij` | plugin: designer visual, editor JSON com preview, campos a partir de DTO, migração de `.jrxml` |
+| [`prelo-desktop`](prelo-desktop) | app Windows (Electron) com o mesmo designer e Java embutido: monta e exporta relatórios sem IDE |
 
-![Relato desktop](docs/desktop/lado-a-lado.png)
+![Prelo desktop](docs/desktop/lado-a-lado.png)
 
 ## Instalar (local)
 
@@ -32,9 +32,9 @@ Gradle:
 ```kotlin
 repositories { mavenLocal(); mavenCentral() }
 dependencies {
-    implementation("io.github.mateusvpassos:relato-spring-boot-starter:0.1.0-SNAPSHOT") // Spring
-    // ou relato-quarkus (Quarkus) / relato-core (qualquer Java)
-    // opcional: implementation("io.github.mateusvpassos:relato-fonts:0.1.0-SNAPSHOT")    // Unicode completo
+    implementation("io.github.mateusvpassos:prelo-spring-boot-starter:0.1.0-SNAPSHOT") // Spring
+    // ou prelo-quarkus (Quarkus) / prelo-core (qualquer Java)
+    // opcional: implementation("io.github.mateusvpassos:prelo-fonts:0.1.0-SNAPSHOT")    // Unicode completo
 }
 ```
 
@@ -42,12 +42,12 @@ Maven (usa `~/.m2` automaticamente):
 ```xml
 <dependency>
   <groupId>io.github.mateusvpassos</groupId>
-  <artifactId>relato-spring-boot-starter</artifactId>
+  <artifactId>prelo-spring-boot-starter</artifactId>
   <version>0.1.0-SNAPSHOT</version>
 </dependency>
 ```
 
-Plugin IntelliJ: `./gradlew :relato-intellij:buildPlugin` → `Settings → Plugins → ⚙ → Install Plugin from Disk…` → `relato-intellij/build/distributions/relato-intellij-0.1.0.zip`.
+Plugin IntelliJ: `./gradlew :prelo-intellij:buildPlugin` → `Settings → Plugins → ⚙ → Install Plugin from Disk…` → `prelo-intellij/build/distributions/prelo-intellij-0.1.0.zip`.
 
 Passo a passo com projetos de teste: [TUTORIAL.md](TUTORIAL.md) (`demo-spring/` e `demo-quarkus/`).
 Como o código está organizado (para quem vai mexer): [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -62,36 +62,36 @@ Templates ficam em `src/main/resources/reports/` (`vendas.report.json`).
 ```java
 @RestController
 class RelatoriosController {
-    private final Relato relato;
+    private final Prelo prelo;
     private final VendaService vendas;
 
     @GetMapping("/relatorios/vendas")
     ResponseEntity<byte[]> vendas(@RequestParam String periodo) {
-        var report = relato.report("vendas").data(vendas.doPeriodo(periodo)).param("periodo", periodo);
+        var report = prelo.report("vendas").data(vendas.doPeriodo(periodo)).param("periodo", periodo);
         return ReportResponses.inline(report, Format.PDF, "vendas-" + periodo);   // ou download(...), Format.XLSX
     }
 }
 ```
 Propriedades (Spring e Quarkus), com os valores padrão:
 ```properties
-relato.templates=classpath:reports/        # ou file:/caminho/reports (edita sem recompilar)
-relato.cache=true                          # false em dev
-relato.locale=pt-BR
-relato.zone=America/Sao_Paulo
-relato.date-pattern=dd/MM/yyyy
-relato.date-time-pattern=dd/MM/yyyy HH:mm
-relato.chunk-rows=4000                     # acima disso o PDF sai em blocos (ver "Relatórios grandes"); 0 desliga
+prelo.templates=classpath:reports/        # ou file:/caminho/reports (edita sem recompilar)
+prelo.cache=true                          # false em dev
+prelo.locale=pt-BR
+prelo.zone=America/Sao_Paulo
+prelo.date-pattern=dd/MM/yyyy
+prelo.date-time-pattern=dd/MM/yyyy HH:mm
+prelo.chunk-rows=4000                     # acima disso o PDF sai em blocos (ver "Relatórios grandes"); 0 desliga
 ```
 
-**Quarkus** (`io.github.mateusvpassos:relato-quarkus:0.1.0-SNAPSHOT`)
+**Quarkus** (`io.github.mateusvpassos:prelo-quarkus:0.1.0-SNAPSHOT`)
 ```java
 @Path("/relatorios")
 public class RelatoriosResource {
-    @Inject Relato relato;   // configurado por application.properties (relato.templates, relato.cache...)
+    @Inject Prelo prelo;   // configurado por application.properties (prelo.templates, prelo.cache...)
 
     @GET @Path("/vendas")
     public Response vendas(@QueryParam("formato") @DefaultValue("pdf") String formato) {
-        return ReportResponses.inline(relato.report("vendas").data(service.vendas()), Format.of(formato), "vendas");
+        return ReportResponses.inline(prelo.report("vendas").data(service.vendas()), Format.of(formato), "vendas");
     }
 }
 ```
@@ -99,11 +99,11 @@ Projeto de teste: [`demo-quarkus/`](demo-quarkus). Testado em modo JVM; native i
 
 **Java puro**
 ```java
-Relato relato = Relato.builder().templates(TemplateLoader.classpath("reports/")).build();
-byte[] pdf  = relato.report("vendas").data(lista).param("periodo", "09/2026").pdf();
-byte[] xlsx = relato.report("vendas").data(lista).xlsx();
-byte[] csv  = relato.report("vendas").data(lista).csv();   // 1ª tabela, ';' e vírgula decimal (Excel pt-BR)
-relato.report("vendas").data(lista).pdf(outputStream);
+Prelo prelo = Prelo.builder().templates(TemplateLoader.classpath("reports/")).build();
+byte[] pdf  = prelo.report("vendas").data(lista).param("periodo", "09/2026").pdf();
+byte[] xlsx = prelo.report("vendas").data(lista).xlsx();
+byte[] csv  = prelo.report("vendas").data(lista).csv();   // 1ª tabela, ';' e vírgula decimal (Excel pt-BR)
+prelo.report("vendas").data(lista).pdf(outputStream);
 ```
 
 Dados aceitos: `List`/coleção (vira `rows`, fonte padrão das tabelas), objeto único (propriedades acessíveis direto), records, POJOs com getters, `Map`. JDBC: `Rows.of(resultSet)`.
@@ -189,7 +189,7 @@ Uma propriedade que resulta vazia é descartada.
 - **`barcode`**: `qr`, `code128`, `code39`, `ean13`, `ean8`, `upca`, `itf`, `datamatrix`, `pdf417`.
 - **`include`**: corpo de outro template (sub-relatório reaproveitável), com os dados e parâmetros que você passar.
 - **`metadata`** (`author subject keywords creator`) e **`security`** (`userPassword`, `ownerPassword`, `allowPrint`, `allowCopy`, `allowModify`; AES-256) no PDF. Ambos aceitam expressões: `"security": { "userPassword": "${cpf}" }` gera o extrato que abre com o CPF do cliente.
-- **Unicode completo** (✓ ★ → Ω €, grego, cirílico): adicione `io.github.mateusvpassos:relato-fonts:0.1.0-SNAPSHOT`. Com o jar no classpath, DejaVu Sans vira a fonte padrão.
+- **Unicode completo** (✓ ★ → Ω €, grego, cirílico): adicione `io.github.mateusvpassos:prelo-fonts:0.1.0-SNAPSHOT`. Com o jar no classpath, DejaVu Sans vira a fonte padrão.
 
 ### Expressões
 
@@ -232,30 +232,30 @@ Uma propriedade que resulta vazia é descartada.
 - Lê record, POJO com getters, Lombok e Kotlin. Listas e objetos viram campos aninhados; `BigDecimal` com nome de valor vira `money`.
 - Com os campos declarados, `${...}` tem autocomplete pelo contexto (item da tabela/lista, objetos aninhados) e campo inexistente vira aviso.
 
-**Editor de texto** (aba *Relato*):
+**Editor de texto** (aba *Prelo*):
 - Qualquer `*.report.json` abre com o preview ao lado, que atualiza enquanto você digita, sem salvar.
-- Autocomplete, documentação e validação vêm do schema embutido ([`relato.schema.json`](relato-core/src/main/resources/relato.schema.json)).
+- Autocomplete, documentação e validação vêm do schema embutido ([`prelo.schema.json`](prelo-core/src/main/resources/prelo.schema.json)).
 - Dados do preview: `nome.sample.json` ao lado do template (`{"params": {...}, "data": [...]}`). Se ele não existir, os dados são inventados a partir de `fields`, com valor plausível pelo nome: `cnpj`, `cidade`, `valor`...
 - Na barra: zoom, **Dados de exemplo** (cria/abre o sample) e exportar PDF/XLSX/HTML.
 - Paleta do designer inclui gráfico, tabela cruzada, etiquetas e texto formatado, e os prontos *QR Pix* e *Boleto (ITF)*.
-- `New → Relatório Relato` cria um template inicial.
+- `New → Relatório Prelo` cria um template inicial.
 
-## App desktop (`relato-desktop`)
+## App desktop (`prelo-desktop`)
 
-Para quem não usa IntelliJ (ou para montar o layout com calma): instale `relato-desktop/dist/Relato-Setup-0.1.0.exe`. Não precisa de Java instalado. Tela inicial com exemplos, designer, preview lado a lado, editor de dados de exemplo e exportação para PDF, XLSX, CSV e HTML. Detalhes e build em [relato-desktop/README.md](relato-desktop/README.md).
+Para quem não usa IntelliJ (ou para montar o layout com calma): instale `prelo-desktop/dist/Prelo-Setup-0.1.0.exe`. Não precisa de Java instalado. Tela inicial com exemplos, designer, preview lado a lado, editor de dados de exemplo e exportação para PDF, XLSX, CSV e HTML. Detalhes e build em [prelo-desktop/README.md](prelo-desktop/README.md).
 
-## Linha de comando e serviço HTTP (`relato-server`)
+## Linha de comando e serviço HTTP (`prelo-server`)
 
-Jar único com tudo dentro (inclui `relato-fonts`):
+Jar único com tudo dentro (inclui `prelo-fonts`):
 ```bash
-./gradlew :relato-server:fatJar        # relato-server/build/libs/relato-server-0.1.0-SNAPSHOT-all.jar
+./gradlew :prelo-server:fatJar        # prelo-server/build/libs/prelo-server-0.1.0-SNAPSHOT-all.jar
 ```
 
 ```bash
-java -jar relato-server-all.jar render examples/cobranca.report.json              # usa cobranca.sample.json, grava cobranca.pdf
-java -jar relato-server-all.jar render vendas.report.json -d dados.json -o vendas.xlsx -p periodo=09/2026
-java -jar relato-server-all.jar check src/main/resources/reports                  # sai com 1 se houver problema (CI)
-java -jar relato-server-all.jar serve --port 8090 --templates reports --token segredo
+java -jar prelo-server-all.jar render examples/cobranca.report.json              # usa cobranca.sample.json, grava cobranca.pdf
+java -jar prelo-server-all.jar render vendas.report.json -d dados.json -o vendas.xlsx -p periodo=09/2026
+java -jar prelo-server-all.jar check src/main/resources/reports                  # sai com 1 se houver problema (CI)
+java -jar prelo-server-all.jar serve --port 8090 --templates reports --token segredo
 ```
 
 Com o serviço no ar, qualquer sistema (Node, Python, PHP, Delphi...) gera o relatório:
@@ -265,7 +265,7 @@ curl -X POST "http://127.0.0.1:8090/render/vendas?format=pdf" -H "Authorization:
 - `POST /render/{nome}?format=pdf|xlsx|html|csv` (`&download=1` para anexo, `&filename=x`), corpo `{"params", "data"}`.
 - `POST /render` com o template no corpo: `{"template": {...}, "params", "data"}`.
 - `GET /templates` lista os nomes; `GET /health` não exige token.
-- Escuta em `127.0.0.1` por padrão. Para expor na rede use `--host 0.0.0.0` **com** `--token` (ou `RELATO_TOKEN`). Imagens com caminho relativo só são lidas dentro da pasta de templates e `include` só aceita nomes simples. Imagens `http(s)://` são baixadas pelo renderizador: não deixe dados não confiáveis escolherem o `src`.
+- Escuta em `127.0.0.1` por padrão. Para expor na rede use `--host 0.0.0.0` **com** `--token` (ou `PRELO_TOKEN`). Imagens com caminho relativo só são lidas dentro da pasta de templates e `include` só aceita nomes simples. Imagens `http(s)://` são baixadas pelo renderizador: não deixe dados não confiáveis escolherem o `src`.
 
 ## Relatórios grandes
 
@@ -277,14 +277,14 @@ Tabelas com mais de `chunkRows` linhas (padrão 4000) geram o PDF em blocos. Cad
 | 20.000 | ~4 s | 0,2 s | < 256 MB |
 | 50.000 (~1.100 páginas) | ~9 s | 0,5 s | < 256 MB (sem blocos: > 1 GB) |
 
-Configuração: `Relato.builder().chunkRows(4000)` ou `relato.chunk-rows=4000`; `0` desliga os blocos. Tabelas com `pageTotals` não usam blocos.
+Configuração: `Prelo.builder().chunkRows(4000)` ou `prelo.chunk-rows=4000`; `0` desliga os blocos. Tabelas com `pageTotals` não usam blocos.
 
 ## Migrar do JasperReports
 
-- **No IntelliJ**: clique com o botão direito num `.jrxml` ou numa pasta e escolha **Converter para Relato (.report.json)**. O `.report.json` fica ao lado do original.
+- **No IntelliJ**: clique com o botão direito num `.jrxml` ou numa pasta e escolha **Converter para Prelo (.report.json)**. O `.report.json` fica ao lado do original.
 - **Em lote, pela linha de comando**:
   ```bash
-  ./gradlew :relato-jrxml:run --args="<pasta dos .jrxml> <pasta de saída> <pasta do código Java>"
+  ./gradlew :prelo-jrxml:run --args="<pasta dos .jrxml> <pasta de saída> <pasta do código Java>"
   ```
 
 Como a conversão funciona:
@@ -292,7 +292,7 @@ Como a conversão funciona:
 - O detail de uma linha vira tabela, com os cabeçalhos casados pela posição. O detail de várias linhas vira lista.
 - Grupos e variáveis `Sum/Count/Average` viram grupos, subtotais e total geral.
 - Sub-relatórios viram `include`. Se o caminho vem de parâmetro (`$P{pathCabecalho}`), o nome é descoberto lendo o código Java (`parametros.put("pathCabecalho", ... "Cabecalho.jasper")`).
-- As expressões Java viram expressões do relato: `$F/$P/$V`, concatenação, ternário, `SimpleDateFormat`, getters, `toUpperCase/trim/equals/substring`, `BigDecimal.add`...
+- As expressões Java viram expressões do prelo: `$F/$P/$V`, concatenação, ternário, `SimpleDateFormat`, getters, `toUpperCase/trim/equals/substring`, `BigDecimal.add`...
 - O que não converter fica listado em comentários `//` no topo do arquivo.
 
 Nos 184 `.jrxml` reais de teste (sistemas legados, iReport antigo e JR 6), o resultado foi:
@@ -302,7 +302,7 @@ Nos 184 `.jrxml` reais de teste (sistemas legados, iReport antigo e JR 6), o res
 
 ## Desenvolvimento do designer
 
-O designer é HTML/JS puro (`relato-intellij/src/main/resources/designer/`). Para mexer nele fora da IDE, sirva a raiz do repo e abra `dev/designer-demo.html` (host simulado):
+O designer é HTML/JS puro (`prelo-intellij/src/main/resources/designer/`). Para mexer nele fora da IDE, sirva a raiz do repo e abra `dev/designer-demo.html` (host simulado):
 
 ```bash
 python -m http.server 8765
@@ -315,10 +315,10 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 - [x] Designer: redimensionar colunas, copiar/colar, preview lado a lado, seleção múltipla
 - [x] `fields` a partir de uma classe DTO do projeto (PSI) + autocomplete de campos nas expressões
 - [x] A transportar, marca d'água, cabeçalho só na 1ª página, sub-relatório, código de barras/QR
-- [x] Fonte com Unicode completo (`relato-fonts`)
+- [x] Fonte com Unicode completo (`prelo-fonts`)
 - [x] Relatórios grandes: PDF em blocos com memória limitada
-- [x] Migração do JasperReports (`relato-jrxml` + ação no plugin)
-- [x] Quarkus (`relato-quarkus`, modo JVM)
+- [x] Migração do JasperReports (`prelo-jrxml` + ação no plugin)
+- [x] Quarkus (`prelo-quarkus`, modo JVM)
 - [x] Gráficos, tabela cruzada, etiquetas/crachás, Markdown, Pix/boleto, PDF com senha e metadados, CSV, estilo condicional
 - [ ] Quarkus native image
 - [ ] Publicar (GitHub Packages) + CI
@@ -329,8 +329,8 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew test
 ```
 Opcionais:
-- `-Drelato.perf=true`: medição de volume (5 a 50 mil linhas).
+- `-Dprelo.perf=true`: medição de volume (5 a 50 mil linhas).
 - `-Dgaleria=true`: regenera as imagens de `docs/galeria` a partir de `examples/`.
-- `-Drelato.jrxml.corpus="pasta1;pasta2"`: migra em lote `.jrxml` reais e mostra o resumo em `relato-jrxml/build/migrados`.
+- `-Dprelo.jrxml.corpus="pasta1;pasta2"`: migra em lote `.jrxml` reais e mostra o resumo em `prelo-jrxml/build/migrados`.
 
 As demos têm build próprio (`demo-spring/`, `demo-quarkus/`) e usam a lib do `mavenLocal`.

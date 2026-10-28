@@ -2,28 +2,28 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Relato Designer (dev)</title>
-<link rel="stylesheet" href="../relato-intellij/src/main/resources/designer/designer.css">
-<script src="../relato-intellij/src/main/resources/designer/icons.js"></script>
+<title>Prelo Designer (dev)</title>
+<link rel="stylesheet" href="../prelo-intellij/src/main/resources/designer/designer.css">
+<script src="../prelo-intellij/src/main/resources/designer/icons.js"></script>
 <script>
   // host simulado: guarda as mensagens enviadas e responde ao 'ready' com o exemplo de vendas
   window.sent = [];
-  window.relatoMockHost = async (msg) => {
+  window.preloMockHost = async (msg) => {
     window.sent.push(msg);
     if (msg.type === 'ready') {
-      if (new URLSearchParams(location.search).get('dark') !== '0') window.relato.receive({ type: 'theme', dark: true });
+      if (new URLSearchParams(location.search).get('dark') !== '0') window.prelo.receive({ type: 'theme', dark: true });
       const file = new URLSearchParams(location.search).get('file') || 'vendas';
       const [json, schema] = await Promise.all([
         fetch('../examples/' + file + '.report.json').then((r) => r.text()),
-        fetch('../relato-core/src/main/resources/relato.schema.json').then((r) => r.text()),
+        fetch('../prelo-core/src/main/resources/prelo.schema.json').then((r) => r.text()),
       ]);
       const clean = json.replace(/^\s*\/\/.*$/gm, '');
-      window.relato.receive({ type: 'load', json: clean, schema, fileName: file + '.report.json' });
+      window.prelo.receive({ type: 'load', json: clean, schema, fileName: file + '.report.json' });
     }
-    if (msg.type === 'preview') window.relato.receive({ type: 'preview', pages: [], total: 0, notes: ['(host simulado: sem PDF)'] });
-    if (msg.type === 'findClasses') window.relato.receive({ type: 'classes', items: ['demo.Dados.Venda', 'demo.Dados.Pedido', 'demo.Dados.Cliente'] });
+    if (msg.type === 'preview') window.prelo.receive({ type: 'preview', pages: [], total: 0, notes: ['(host simulado: sem PDF)'] });
+    if (msg.type === 'findClasses') window.prelo.receive({ type: 'classes', items: ['demo.Dados.Venda', 'demo.Dados.Pedido', 'demo.Dados.Cliente'] });
     if (msg.type === 'importFields') {
-      window.relato.receive({ type: 'fields', className: msg.className, fields: [
+      window.prelo.receive({ type: 'fields', className: msg.className, fields: [
         { name: 'regiao', type: 'string' }, { name: 'vendedor', type: 'string' },
         { name: 'cliente', type: 'object', fields: [ { name: 'nome', type: 'string' }, { name: 'cnpj', type: 'string' } ] },
         { name: 'data', type: 'date' }, { name: 'quantidade', type: 'integer' }, { name: 'valor', type: 'money' },
@@ -34,7 +34,7 @@
       const m = JSON.parse(msg.json);
       const items = [];
       (m.body || []).forEach((el, i) => { if (el.type === 'text' && /\$\{vlor\}/.test(el.value || '')) items.push({ path: ['body', i, 'value'], message: "campo 'vlor' não existe (disponíveis: valor, ...)" }); });
-      window.relato.receive({ type: 'problems', items });
+      window.prelo.receive({ type: 'problems', items });
     }
   };
 </script>
@@ -42,7 +42,7 @@
 <body>
 <div id="app">
   <div id="toolbar">
-    <span class="title" id="title">Relato</span>
+    <span class="title" id="title">Prelo</span>
     <div class="grp">
       <button class="tbtn icon" id="undo" title="Desfazer (Ctrl+Z)"><i data-icon="undo"></i></button>
       <button class="tbtn icon" id="redo" title="Refazer (Ctrl+Y)"><i data-icon="redo"></i></button>
@@ -71,6 +71,6 @@
   </div>
   <div id="props"></div>
 </div>
-<script src="../relato-intellij/src/main/resources/designer/designer.js"></script>
+<script src="../prelo-intellij/src/main/resources/designer/designer.js"></script>
 </body>
 </html>

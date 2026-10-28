@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: file:; font-src 'self'">
+  <title>Prelo</title>
+  <link rel="stylesheet" href="designer/designer.css">
+  <link rel="stylesheet" href="app.css">
+  <script src="designer/icons.js"></script>
+</head>
+<body class="dark">
+  <header id="topbar">
+    <div class="brand"><img src="icon.png" alt=""><span>Prelo</span></div>
+    <div class="docname" id="docname" title=""><span class="dot" id="dirtyDot"></span><span id="docTitle">Início</span></div>
+    <div class="sep"></div>
+    <button id="btn-new" class="icon-btn" title="Novo relatório (Ctrl+N)"><i data-icon="filePlus"></i></button>
+    <button id="btn-open" class="icon-btn" title="Abrir (Ctrl+O)"><i data-icon="folderOpen"></i></button>
+    <button id="btn-save" class="icon-btn needs-doc" title="Salvar (Ctrl+S) · Ctrl+Shift+S: salvar como"><i data-icon="save"></i></button>
+    <div class="sep needs-doc"></div>
+    <button id="btn-sample" class="needs-doc" title="Dados usados no preview e na exportação"><i data-icon="database"></i>Dados de exemplo</button>
+    <button id="btn-json" class="needs-doc" title="Ver e editar o JSON do relatório"><i data-icon="code"></i>JSON</button>
+    <div class="spacer"></div>
+    <span id="engineState" class="engine" title="Motor de relatórios (Java)"><span class="led"></span><span class="lbl">iniciando motor…</span></span>
+    <button id="btn-help" class="icon-btn" title="Atalhos (F1)"><i data-icon="help"></i></button>
+    <div class="menu-wrap needs-doc">
+      <button id="btn-export" class="primary" title="Exportar (Ctrl+E: PDF)"><i data-icon="export"></i>Exportar<i data-icon="chevronDown" data-size="14"></i></button>
+      <div class="menu" id="exportMenu">
+        <button data-fmt="pdf"><i data-icon="file"></i><span><b>PDF</b><small>documento para imprimir ou enviar</small></span><kbd>Ctrl+E</kbd></button>
+        <button data-fmt="xlsx"><i data-icon="table"></i><span><b>Excel (XLSX)</b><small>números e datas de verdade</small></span></button>
+        <button data-fmt="csv"><i data-icon="list"></i><span><b>CSV</b><small>primeira tabela, separada por ;</small></span></button>
+        <button data-fmt="html"><i data-icon="code"></i><span><b>HTML</b><small>página para abrir no navegador</small></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="stage">
+    <section id="welcome">
+      <div class="hero">
+        <img src="icon.png" alt="" class="hero-icon">
+        <div>
+          <h1>Prelo</h1>
+          <p>Relatórios PDF, Excel e CSV a partir de um layout visual. Arraste blocos, ligue os campos e veja o PDF na hora.</p>
+          <div class="hero-actions">
+            <button class="primary big" id="w-new"><i data-icon="filePlus"></i>Novo relatório</button>
+            <button class="big" id="w-open"><i data-icon="folderOpen"></i>Abrir…</button>
+          </div>
+        </div>
+      </div>
+      <div class="wcols">
+        <div class="wcol">
+          <h3>Começar de um exemplo</h3>
+          <div id="examples" class="examples"></div>
+        </div>
+        <div class="wcol narrow">
+          <h3>Recentes</h3>
+          <div id="recent" class="recent"></div>
+          <h3 class="mt">Dicas</h3>
+          <ul class="tips">
+            <li>Arraste um <b>campo</b> da paleta para cima de uma tabela e ele vira coluna.</li>
+            <li><kbd>Lado a lado</kbd> mostra o PDF atualizando enquanto você edita.</li>
+            <li>Textos aceitam expressões: <code>${sum(valor)}</code>, <code>${format(data, 'dd/MM')}</code>.</li>
+            <li>Os dados de exemplo ficam num <code>.sample.json</code> ao lado do relatório.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="drop-hint">ou solte um <code>.report.json</code> aqui</div>
+    </section>
+
+    <section id="editor">
+      <div id="app">
+        <div id="toolbar">
+          <span class="title" id="title">Prelo</span>
+          <div class="grp">
+            <button class="tbtn icon" id="undo" title="Desfazer (Ctrl+Z)"><i data-icon="undo"></i></button>
+            <button class="tbtn icon" id="redo" title="Refazer (Ctrl+Y)"><i data-icon="redo"></i></button>
+          </div>
+          <span class="spacer"></span>
+          <span class="status" id="status"></span>
+          <div class="grp">
+            <button class="tbtn icon" id="zoomOut" title="Diminuir"><i data-icon="zoomOut"></i></button>
+            <button class="tbtn zoom" id="zoomFit" title="Ajustar à largura"><span id="zoomLabel">100%</span></button>
+            <button class="tbtn icon" id="zoomIn" title="Aumentar"><i data-icon="zoomIn"></i></button>
+          </div>
+          <span class="vsep"></span>
+          <button class="tbtn" id="reportProps" title="Página, parâmetros e campos do relatório"><i data-icon="settings"></i>Relatório</button>
+          <button class="tbtn icon" id="pasteBtn" title="Colar blocos (Ctrl+V)"><i data-icon="paste"></i></button>
+          <span class="vsep"></span>
+          <div class="seg">
+            <button class="tbtn" id="splitPreview" title="Layout e PDF lado a lado, atualizando sozinho"><i data-icon="split"></i>Lado a lado</button>
+            <button class="tbtn" id="togglePreview" title="Ver o PDF gerado com os dados de exemplo"><i data-icon="eye"></i>PDF</button>
+          </div>
+        </div>
+        <div id="palette"></div>
+        <div id="center">
+          <div id="canvas"></div>
+          <div id="preview"></div>
+          <div id="banner"><div class="box" id="bannerText"></div></div>
+        </div>
+        <div id="props"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- dados de exemplo / JSON -->
+  <div class="modal-back" id="codeModal">
+    <div class="modal wide">
+      <div class="mhead">
+        <div class="mtitle"><span id="codeIcon"></span><div><b id="codeTitle">Dados de exemplo</b><small id="codeSub"></small></div></div>
+        <button class="icon-btn ghost" data-close title="Fechar (Esc)"><i data-icon="x"></i></button>
+      </div>
+      <textarea id="codeText" spellcheck="false"></textarea>
+      <div class="mfoot">
+        <span class="merr" id="codeErr"></span>
+        <div class="spacer"></div>
+        <button id="codeGen" title="Inventar dados a partir dos campos declarados"><i data-icon="sparkles"></i>Gerar a partir dos campos</button>
+        <button data-close>Cancelar</button>
+        <button class="primary" id="codeApply"><i data-icon="check"></i>Aplicar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- confirmação -->
+  <div class="modal-back" id="askModal">
+    <div class="modal">
+      <div class="mhead"><div class="mtitle"><div><b id="askTitle"></b><small id="askText"></small></div></div></div>
+      <div class="mfoot" id="askButtons"></div>
+    </div>
+  </div>
+
+  <!-- atalhos -->
+  <div class="modal-back" id="helpModal">
+    <div class="modal">
+      <div class="mhead">
+        <div class="mtitle"><div><b>Atalhos</b><small>no app e no designer</small></div></div>
+        <button class="icon-btn ghost" data-close><i data-icon="x"></i></button>
+      </div>
+      <div class="keys">
+        <div><kbd>Ctrl+N</kbd>Novo relatório</div><div><kbd>Ctrl+O</kbd>Abrir</div>
+        <div><kbd>Ctrl+S</kbd>Salvar</div><div><kbd>Ctrl+Shift+S</kbd>Salvar como</div>
+        <div><kbd>Ctrl+E</kbd>Exportar PDF</div><div><kbd>Ctrl+W</kbd>Fechar e voltar ao início</div>
+        <div><kbd>Ctrl+Z / Ctrl+Y</kbd>Desfazer / refazer</div><div><kbd>Del</kbd>Remover bloco</div>
+        <div><kbd>Ctrl+D</kbd>Duplicar bloco</div><div><kbd>Alt+↑ / Alt+↓</kbd>Mover bloco</div>
+        <div><kbd>Ctrl+C / X / V</kbd>Copiar, recortar, colar blocos</div><div><kbd>Ctrl+clique</kbd>Seleção múltipla</div>
+        <div><kbd>Duplo clique</kbd>Editar texto no lugar</div><div><kbd>F1</kbd>Esta ajuda</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+  <div id="dropOverlay"><div><i data-icon="folderOpen" data-size="40"></i><b>Solte para abrir</b></div></div>
+
+  <script src="app.js"></script>
+  <script src="designer/designer.js"></script>
+</body>
+</html>

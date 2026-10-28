@@ -1,1 +1,1 @@
-rootProject.name = "relato-demo"
+rootProject.name = "prelo-demo"

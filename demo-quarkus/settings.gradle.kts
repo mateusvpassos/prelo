@@ -4,4 +4,4 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-rootProject.name = "relato-demo-quarkus"
+rootProject.name = "prelo-demo-quarkus"

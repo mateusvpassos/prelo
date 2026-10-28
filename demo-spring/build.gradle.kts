@@ -12,13 +12,13 @@ java {
 }
 
 repositories {
-    mavenLocal()   // relato publicado com ./gradlew publishToMavenLocal (na raiz do repo)
+    mavenLocal()   // prelo publicado com ./gradlew publishToMavenLocal (na raiz do repo)
     mavenCentral()
 }
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("io.github.mateusvpassos:relato-spring-boot-starter:0.1.0-SNAPSHOT")
+    implementation("io.github.mateusvpassos:prelo-spring-boot-starter:0.1.0-SNAPSHOT")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

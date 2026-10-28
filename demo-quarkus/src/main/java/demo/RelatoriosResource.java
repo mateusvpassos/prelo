@@ -1,8 +1,8 @@
 package demo;
 
-import io.github.mateusvpassos.relato.Format;
-import io.github.mateusvpassos.relato.Relato;
-import io.github.mateusvpassos.relato.quarkus.ReportResponses;
+import io.github.mateusvpassos.prelo.Format;
+import io.github.mateusvpassos.prelo.Prelo;
+import io.github.mateusvpassos.prelo.quarkus.ReportResponses;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
@@ -17,13 +17,13 @@ import java.util.List;
 @Path("/relatorios")
 public class RelatoriosResource {
     @Inject
-    Relato relato;
+    Prelo prelo;
 
     /** /relatorios/vendas?formato=pdf|xlsx|html */
     @GET
     @Path("/vendas")
     public Response vendas(@QueryParam("formato") @DefaultValue("pdf") String formato) {
-        var report = relato.report("vendas").data(vendas(120)).param("periodo", "09/2026");
+        var report = prelo.report("vendas").data(vendas(120)).param("periodo", "09/2026");
         return ReportResponses.inline(report, Format.of(formato), "vendas");
     }
 

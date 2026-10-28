@@ -1,0 +1,14 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="JavaScript.JsonSchema">
+        <ProviderFactory implementation="prelo.intellij.PreloSchemaProviderFactory"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <externalAnnotator language="JSON" implementationClass="prelo.intellij.json.FieldCheckAnnotator"/>
+        <completion.contributor language="JSON" implementationClass="prelo.intellij.json.FieldCompletionContributor" order="first"/>
+        <intentionAction>
+            <language>JSON</language>
+            <className>prelo.intellij.json.ImportFieldsIntention</className>
+            <category>Prelo</category>
+        </intentionAction>
+    </extensions>
+</idea-plugin>

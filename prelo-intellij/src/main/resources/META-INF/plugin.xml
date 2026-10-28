@@ -1,0 +1,43 @@
+<idea-plugin>
+    <id>io.github.mateusvpassos.prelo</id>
+    <name>Prelo Reports</name>
+    <vendor>mvinicius</vendor>
+    <description><![CDATA[
+    Editor e preview de relatórios <b>prelo</b> (<code>*.report.json</code>) — alternativa leve ao JasperReports.
+    <ul>
+      <li>Designer visual: arraste blocos e campos para montar o layout; propriedades editadas num painel.</li>
+      <li>Editor dividido: JSON à esquerda, páginas do PDF à direita, atualizando enquanto você digita.</li>
+      <li>Campos a partir de uma classe do projeto (dataClass): record, POJO, Lombok ou Kotlin.</li>
+      <li>Autocomplete de ${campo} e aviso de campo inexistente, respeitando o escopo de tabelas e listas.</li>
+      <li>Autocomplete e validação do JSON (schema embutido).</li>
+      <li>Dados de exemplo gerados a partir de <code>fields</code>, ou lidos de <code>nome.sample.json</code>.</li>
+      <li>Exporta PDF, HTML e XLSX do preview.</li>
+      <li>Migração do JasperReports: botão direito em .jrxml (ou pasta) → Converter para Prelo.</li>
+    </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends optional="true" config-file="prelo-json.xml">com.intellij.modules.json</depends>
+    <!-- leitura de classes DTO (dataClass) -->
+    <depends optional="true" config-file="prelo-java.xml">com.intellij.java</depends>
+    <!-- 2026.2+: JCEF é um plugin à parte; nas versões antigas faz parte da plataforma -->
+    <depends optional="true" config-file="prelo-jcef.xml">com.intellij.modules.jcef</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileEditorProvider implementation="prelo.intellij.ReportEditorProvider"/>
+        <fileEditorProvider implementation="prelo.intellij.designer.DesignerEditorProvider"/>
+        <notificationGroup id="Prelo" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <action id="Prelo.NewReport" class="prelo.intellij.NewReportAction" text="Relatório Prelo"
+                description="Cria um arquivo .report.json" icon="AllIcons.FileTypes.Json">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewFile"/>
+        </action>
+        <action id="Prelo.ConvertJrxml" class="prelo.intellij.jrxml.ConvertJrxmlAction" text="Converter para Prelo (.report.json)"
+                description="Migra relatórios JasperReports (.jrxml) para o prelo" icon="AllIcons.Actions.Refresh">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <add-to-group group-id="EditorTabPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
