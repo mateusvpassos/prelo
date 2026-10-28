@@ -2,7 +2,7 @@
 
 ## 0. O que tem aqui
 
-Tudo fica em `C:\Users\mvini\Documents\prelo` (GitHub privado `mateusvpassos/prelo`):
+Tudo fica no repositório [`mateusvpassos/prelo`](https://github.com/mateusvpassos/prelo):
 
 ```
 prelo/
@@ -26,8 +26,8 @@ prelo/
 
 1. Gere o zip (ou use o que já está gerado):
    ```bash
-   cd C:/Users/mvini/Documents/prelo
-   JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew :prelo-intellij:buildPlugin
+   cd prelo
+   ./gradlew :prelo-intellij:buildPlugin
    ```
 2. No IntelliJ, vá em **Settings → Plugins → ⚙ → Install Plugin from Disk…** e escolha
    `prelo/prelo-intellij/build/distributions/prelo-intellij-0.1.0.zip`.
@@ -36,10 +36,10 @@ prelo/
 ## 2. Publicar a lib no Maven local (uma vez, e de novo sempre que mudar a lib)
 
 ```bash
-cd C:/Users/mvini/Documents/prelo
-JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew publishToMavenLocal
+cd prelo
+./gradlew publishToMavenLocal
 ```
-Isso copia a lib para `C:\Users\mvini\.m2\repository\io\github\mateusvpassos\`. Qualquer projeto Gradle (com `mavenLocal()`) ou Maven da máquina passa a enxergá-la.
+Isso copia a lib para `~/.m2/repository/io/github/mateusvpassos/`. Qualquer projeto Gradle (com `mavenLocal()`) ou Maven da máquina passa a enxergá-la.
 
 ## 3. Rodar o projeto de teste
 
@@ -190,7 +190,7 @@ dependencies { implementation("io.github.mateusvpassos:prelo-spring-boot-starter
 
 Em lote, pela linha de comando (o 3º argumento é a pasta do código Java, usada para descobrir qual `.jasper` vai em cada parâmetro de sub-relatório):
 ```bash
-JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew :prelo-jrxml:run --args="C:/projeto/reports C:/saida C:/projeto/src"
+./gradlew :prelo-jrxml:run --args="C:/projeto/reports C:/saida C:/projeto/src"
 ```
 
 ## 10. Recursos extras
@@ -223,7 +223,7 @@ No Designer: *Gráfico*, *Tabela cruzada*, *Etiquetas / crachás* e *Texto forma
 ## 12. Gerar relatório sem Java (CLI e HTTP)
 
 ```bash
-JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew :prelo-server:fatJar
+./gradlew :prelo-server:fatJar
 java -jar prelo-server/build/libs/prelo-server-0.1.0-SNAPSHOT-all.jar render examples/painel.report.json
 java -jar prelo-server/build/libs/prelo-server-0.1.0-SNAPSHOT-all.jar serve --templates examples
 ```

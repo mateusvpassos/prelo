@@ -52,7 +52,7 @@ Plugin IntelliJ: JetBrains Marketplace (*Prelo Reports*), ou `./gradlew :prelo-i
 Passo a passo com projetos de teste: [TUTORIAL.md](TUTORIAL.md) (`demo-spring/` e `demo-quarkus/`).
 Como o código está organizado (para quem vai mexer): [ARCHITECTURE.md](ARCHITECTURE.md).
 
-> Build: rode o Gradle com o JBR da IDE (`JAVA_HOME="C:/Users/.../IntelliJ IDEA/jbr"`); o plugin usa a IDE local como SDK (`ideaLocalPath` em `gradle.properties`).
+> Build: precisa de JDK 21. O plugin baixa a IDE de `ideaVersion`; para usar a IDE instalada, defina `ideaLocalPath` em `~/.gradle/gradle.properties`.
 
 ## Usar
 
@@ -327,7 +327,7 @@ Depois: `http://localhost:8765/dev/designer-demo.html?file=vendas` (ou `?file=pe
 ## Testes
 
 ```bash
-JAVA_HOME="C:/Users/mvini/AppData/Local/Programs/IntelliJ IDEA/jbr" ./gradlew test
+./gradlew test
 ```
 Opcionais:
 - `-Dprelo.perf=true`: medição de volume (5 a 50 mil linhas).
