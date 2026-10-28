@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    `maven-publish`
 }
 
 repositories { mavenCentral() }
@@ -13,18 +12,9 @@ dependencies {
     compileOnly("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
 }
 
-java {
-    withSourcesJar()
-}
 
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(17)
     options.encoding = "UTF-8"
     options.compilerArgs.add("-parameters")
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") { from(components["java"]) }
-    }
 }

@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    `maven-publish`
 }
 
 repositories { mavenCentral() }
@@ -16,9 +15,6 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-java {
-    withSourcesJar()
-}
 
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(17)
@@ -32,10 +28,4 @@ tasks.test {
     systemProperty("galeria", System.getProperty("galeria") ?: "false")
     maxHeapSize = System.getProperty("prelo.heap") ?: "2g"
     testLogging { showStandardStreams = System.getProperty("prelo.perf") == "true" }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") { from(components["java"]) }
-    }
 }

@@ -1,19 +1,20 @@
 <idea-plugin>
     <id>io.github.mateusvpassos.prelo</id>
     <name>Prelo Reports</name>
-    <vendor>mvinicius</vendor>
+    <vendor url="https://github.com/mateusvpassos/prelo">Mateus Passos</vendor>
     <description><![CDATA[
-    Editor e preview de relatórios <b>prelo</b> (<code>*.report.json</code>) — alternativa leve ao JasperReports.
+    Designer and live preview for <b>Prelo</b> reports (<code>*.report.json</code>), a lightweight JasperReports alternative for Java.
     <ul>
-      <li>Designer visual: arraste blocos e campos para montar o layout; propriedades editadas num painel.</li>
-      <li>Editor dividido: JSON à esquerda, páginas do PDF à direita, atualizando enquanto você digita.</li>
-      <li>Campos a partir de uma classe do projeto (dataClass): record, POJO, Lombok ou Kotlin.</li>
-      <li>Autocomplete de ${campo} e aviso de campo inexistente, respeitando o escopo de tabelas e listas.</li>
-      <li>Autocomplete e validação do JSON (schema embutido).</li>
-      <li>Dados de exemplo gerados a partir de <code>fields</code>, ou lidos de <code>nome.sample.json</code>.</li>
-      <li>Exporta PDF, HTML e XLSX do preview.</li>
-      <li>Migração do JasperReports: botão direito em .jrxml (ou pasta) → Converter para Prelo.</li>
+      <li>Visual designer: drag blocks and fields onto the layout and edit properties in a side panel.</li>
+      <li>Split editor: JSON on the left, PDF pages on the right, updated as you type.</li>
+      <li>Fields from a project class (<code>dataClass</code>): record, POJO, Lombok or Kotlin.</li>
+      <li>Completion for <code>${field}</code> and warnings for unknown fields, scoped to tables and lists.</li>
+      <li>JSON completion and validation from the bundled schema.</li>
+      <li>Sample data generated from <code>fields</code> or read from <code>name.sample.json</code>.</li>
+      <li>Export PDF, HTML, XLSX and CSV from the preview.</li>
+      <li>JasperReports migration: right-click a .jrxml file (or folder) to convert it.</li>
     </ul>
+    <p>The user interface is currently in Portuguese (pt-BR).</p>
     ]]></description>
 
     <depends>com.intellij.modules.platform</depends>

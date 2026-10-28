@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    `maven-publish`
     application
 }
 
@@ -13,9 +12,6 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-java {
-    withSourcesJar()
-}
 
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(17)
@@ -32,10 +28,4 @@ tasks.test {
     systemProperty("prelo.jrxml.corpus", System.getProperty("prelo.jrxml.corpus") ?: "")
     systemProperty("prelo.jrxml.png", System.getProperty("prelo.jrxml.png") ?: "")
     maxHeapSize = "1g"
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") { from(components["java"]) }
-    }
 }

@@ -1,0 +1,13 @@
+Prelo
+Copyright 2026 Mateus Passos
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party components:
+
+- openhtmltopdf (LGPL 2.1) — dynamically linked dependency of prelo-core
+- Apache PDFBox, fastexcel, Jackson, ZXing (Apache License 2.0)
+- DejaVu fonts (Bitstream Vera / DejaVu license) — bundled in prelo-fonts,
+  see prelo-fonts/src/main/resources/io/github/mateusvpassos/prelo/fonts/DejaVu-LICENSE.txt
+- Geist and Geist Mono fonts (SIL Open Font License 1.1) — bundled in prelo-intellij,
+  see prelo-intellij/src/main/resources/designer/fonts/OFL.txt

@@ -6,7 +6,7 @@ plugins {
     id("org.jetbrains.intellij.platform")
 }
 
-version = "0.1.0"
+version = version.toString().removeSuffix("-SNAPSHOT")
 
 repositories {
     mavenCentral()
@@ -18,7 +18,9 @@ dependencies {
     implementation(project(":prelo-jrxml"))
     implementation("org.apache.pdfbox:pdfbox:3.0.7")
     intellijPlatform {
-        local(providers.gradleProperty("ideaLocalPath"))
+        // IDE local (sem download) se existir; senão baixa ideaVersion (CI)
+        val local = providers.gradleProperty("ideaLocalPath").orNull?.takeIf { file(it).exists() }
+        if (local != null) local(local) else intellijIdea(providers.gradleProperty("ideaVersion"))
         bundledPlugin("com.intellij.modules.json")
         bundledPlugin("com.intellij.modules.jcef")
         bundledPlugin("com.intellij.java")
@@ -46,6 +48,14 @@ intellijPlatform {
             sinceBuild = "243"
             untilBuild = provider { null }
         }
+    }
+    publishing {
+        token = providers.environmentVariable("JETBRAINS_TOKEN")
+    }
+    signing {
+        certificateChain = providers.environmentVariable("JETBRAINS_CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("JETBRAINS_PRIVATE_KEY")
+        password = providers.environmentVariable("JETBRAINS_PRIVATE_KEY_PASSWORD")
     }
 }
 

@@ -1,6 +1,5 @@
 plugins {
     `java-library`
-    `maven-publish`
 }
 
 repositories { mavenCentral() }
@@ -13,9 +12,6 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-java {
-    withSourcesJar()
-}
 
 tasks.withType<JavaCompile>().configureEach {
     options.release.set(17)
@@ -23,9 +19,3 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.test { useJUnitPlatform() }
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") { from(components["java"]) }
-    }
-}

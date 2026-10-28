@@ -1,0 +1,44 @@
+name: Release
+
+# git tag v0.1.0 && git push origin v0.1.0
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+      ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      JETBRAINS_TOKEN: ${{ secrets.JETBRAINS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Versão a partir da tag
+        run: echo "VERSAO=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Testes
+        run: ./gradlew build -x :prelo-intellij:build -PpreloVersion=$VERSAO --console=plain
+      - name: Maven Central
+        run: ./gradlew publishAndReleaseToMavenCentral -PpreloVersion=$VERSAO --no-configuration-cache --console=plain
+      - name: Jar do servidor e plugin
+        run: ./gradlew :prelo-server:fatJar :prelo-intellij:buildPlugin -PpreloVersion=$VERSAO --console=plain
+      - name: JetBrains Marketplace
+        if: env.JETBRAINS_TOKEN != ''
+        run: ./gradlew :prelo-intellij:publishPlugin -PpreloVersion=$VERSAO --console=plain
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" --title "Prelo $VERSAO" --generate-notes
+          prelo-server/build/libs/prelo-server-$VERSAO-all.jar
+          prelo-intellij/build/distributions/prelo-intellij-$VERSAO.zip
