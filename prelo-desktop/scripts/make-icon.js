@@ -7,7 +7,7 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..');
 
 async function render(svg, size) {
-  const win = new BrowserWindow({ show: false, width: size, height: size, transparent: true, webPreferences: { offscreen: true } });
+  const win = new BrowserWindow({ show: false, width: size, height: size, transparent: true, frame: false });
   const html = `<html><body style="margin:0;background:transparent;overflow:hidden">${svg.replace('<svg ', `<svg width="${size}" height="${size}" `)}</body></html>`;
   await win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
   await new Promise((r) => setTimeout(r, 300));

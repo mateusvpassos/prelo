@@ -13,10 +13,9 @@
   <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
   <circle cx="256" cy="256" r="210" fill="url(#glow)"/>
   <rect x="17.5" y="17.5" width="477" height="477" rx="110.5" fill="none" stroke="#fff" stroke-opacity=".09" stroke-width="3"/>
-  <!-- monograma R com corte, no mesmo traço do K do Kino e do S do Strata -->
+  <!-- monograma P com corte, no mesmo traço do K do Kino e do S do Strata -->
   <g stroke="url(#g)" stroke-width="66" stroke-linecap="round" stroke-linejoin="round" fill="none">
     <line x1="164" y1="140" x2="164" y2="372"/>
-    <path d="M238 140 H290 A58 58 0 0 1 290 256 H238"/>
-    <line x1="300" y1="326" x2="350" y2="372"/>
+    <path d="M238 140 H282 A70 70 0 0 1 282 280 H238"/>
   </g>
 </svg>
