@@ -9,7 +9,7 @@ dependencies {
     compileOnly("jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0")
     compileOnly("jakarta.inject:jakarta.inject-api:2.0.1")
     compileOnly("org.eclipse.microprofile.config:microprofile-config-api:3.1")
-    compileOnly("jakarta.ws.rs:jakarta.ws.rs-api:3.1.0")
+    compileOnly("jakarta.ws.rs:jakarta.ws.rs-api:4.0.0")
 }
 
 
