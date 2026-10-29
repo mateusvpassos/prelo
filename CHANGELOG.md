@@ -17,6 +17,9 @@ First public release.
 - `prelo-intellij`: visual designer, live preview, fields from a DTO class, `.jrxml` migration.
 - `prelo-desktop`: Windows app with the same designer and a bundled Java runtime.
 
+### Security
+- Desktop app on Electron 44.10.0 (fix for compromised eMudhra intermediate certificates).
+
 ### Fixed
 - Desktop app: the bundled Java runtime lacked locale data, so numbers, currency and month names were formatted in English.
 - ISO date-time strings in sample data are converted to date-times.

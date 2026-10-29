@@ -23,8 +23,14 @@
       "renderer/**/*"
     ],
     "extraResources": [
-      { "from": "build-resources/engine", "to": "engine" },
-      { "from": "build-resources/examples", "to": "examples" }
+      {
+        "from": "build-resources/engine",
+        "to": "engine"
+      },
+      {
+        "from": "build-resources/examples",
+        "to": "examples"
+      }
     ],
     "win": {
       "target": [
@@ -43,7 +49,7 @@
     }
   },
   "devDependencies": {
-    "electron": "^44.7.0",
+    "electron": "^44.10.0",
     "electron-builder": "^26.15.3"
   }
 }
