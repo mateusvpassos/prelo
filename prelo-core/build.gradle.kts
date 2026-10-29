@@ -5,7 +5,7 @@ plugins {
 repositories { mavenCentral() }
 
 dependencies {
-    api("com.fasterxml.jackson.core:jackson-databind:2.20.1")
+    api("com.fasterxml.jackson.core:jackson-databind:2.22.4")
     implementation("io.github.openhtmltopdf:openhtmltopdf-pdfbox:1.1.87")
     implementation("org.dhatim:fastexcel:0.20.2")
     implementation("com.google.zxing:core:3.5.4")
