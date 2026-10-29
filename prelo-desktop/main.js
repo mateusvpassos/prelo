@@ -229,3 +229,20 @@ function removeRecent(file) {
 }
 ipcMain.handle('recent', () => loadRecent().filter((r) => fs.existsSync(r.path)).map((r) => ({ ...r, name: path.basename(r.path), dir: path.dirname(r.path) })));
 ipcMain.handle('forget-recent', (_, file) => { removeRecent(file); return true; });
+
+// ---------- sobre (renderer/about.js) ----------
+{
+  const { ipcMain: ipc, shell: sh } = require('electron');
+  const REPO = 'https://github.com/mateusvpassos/prelo';
+  // instalado, ficam em resources/ (extraResources); rodando do código, LICENSE e NOTICE estão na raiz do repositório
+  const res = (packaged, dev) => require('path').join(app.isPackaged ? process.resourcesPath : __dirname, app.isPackaged ? packaged : dev);
+  ipc.handle('about:info', () => ({ version: app.getVersion() }));
+  ipc.handle('about:notices', () => [res('LICENSE.txt', '../LICENSE'), res('NOTICE.txt', '../NOTICE'), res('THIRD-PARTY-NOTICES.md', 'THIRD-PARTY-NOTICES.md')]
+    .map(f => { try { return require('fs').readFileSync(f, 'utf8'); } catch { return ''; } })
+    .join('\n\n' + '─'.repeat(60) + '\n\n'));
+  ipc.handle('about:open', (_, which) => {
+    if (which === 'licenses') return sh.openPath(res('engine/runtime/legal', 'build-resources/engine/runtime/legal'));
+    const url = { repo: REPO, issues: REPO + '/issues/new/choose' }[which];
+    if (url) sh.openExternal(url);
+  });
+}

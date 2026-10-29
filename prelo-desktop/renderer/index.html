@@ -6,6 +6,7 @@
   <title>Prelo</title>
   <link rel="stylesheet" href="designer/designer.css">
   <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="about.css">
   <script src="designer/icons.js"></script>
 </head>
 <body class="dark">
@@ -22,6 +23,7 @@
     <div class="spacer"></div>
     <span id="engineState" class="engine" title="Motor de relatórios (Java)"><span class="led"></span><span class="lbl">iniciando motor…</span></span>
     <button id="btn-help" class="icon-btn" title="Atalhos (F1)"><i data-icon="help"></i></button>
+    <button class="icon-btn" data-about title="Sobre: versão, licença e créditos"><i data-icon="info"></i></button>
     <div class="menu-wrap needs-doc">
       <button id="btn-export" class="primary" title="Exportar (Ctrl+E: PDF)"><i data-icon="export"></i>Exportar<i data-icon="chevronDown" data-size="14"></i></button>
       <div class="menu" id="exportMenu">
@@ -151,5 +153,7 @@
 
   <script src="app.js"></script>
   <script src="designer/designer.js"></script>
+  <script src="about-info.js"></script>
+  <script src="about.js"></script>
 </body>
 </html>

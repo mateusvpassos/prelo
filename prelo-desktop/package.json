@@ -30,6 +30,18 @@
       {
         "from": "build-resources/examples",
         "to": "examples"
+      },
+      {
+        "from": "../LICENSE",
+        "to": "LICENSE.txt"
+      },
+      {
+        "from": "../NOTICE",
+        "to": "NOTICE.txt"
+      },
+      {
+        "from": "THIRD-PARTY-NOTICES.md",
+        "to": "THIRD-PARTY-NOTICES.md"
       }
     ],
     "win": {
@@ -51,5 +63,6 @@
   "devDependencies": {
     "electron": "^44.10.0",
     "electron-builder": "^26.15.3"
-  }
+  },
+  "license": "Apache-2.0"
 }

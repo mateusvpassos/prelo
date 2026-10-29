@@ -21,3 +21,10 @@ contextBridge.exposeInMainWorld('api', {
   onConfirmClose: (cb) => ipcRenderer.on('confirm-close', () => cb()),
   closeNow: () => ipcRenderer.send('close-now'),
 });
+
+// tela "Sobre" (renderer/about.js)
+contextBridge.exposeInMainWorld('aboutApi', {
+  info: () => ipcRenderer.invoke('about:info'),
+  notices: () => ipcRenderer.invoke('about:notices'),
+  open: which => ipcRenderer.invoke('about:open', which)
+});
