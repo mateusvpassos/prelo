@@ -6,7 +6,7 @@ import com.vanniktech.maven.publish.SourcesJar
 plugins {
     kotlin("jvm") version "2.4.20" apply false
     id("org.jetbrains.intellij.platform") version "2.19.0" apply false
-    id("com.vanniktech.maven.publish") version "0.36.0" apply false
+    id("com.vanniktech.maven.publish") version "0.37.0" apply false
 }
 
 // release: ./gradlew -PpreloVersion=0.1.0 ...
