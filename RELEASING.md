@@ -41,6 +41,9 @@ Cadastre em *Settings → Secrets and variables → Actions*:
 
 ## A cada versão
 
+1. Em `CHANGELOG.md`, mova o que está em **Unreleased** para uma seção `## [0.1.0] - AAAA-MM-DD` (na 0.1.0, só troque `unreleased` pela data). O workflow para se a seção não existir, e o texto dela vira as notas da Release.
+2. Crie a tag:
+
 ```bash
 git tag v0.1.0
 git push origin v0.1.0

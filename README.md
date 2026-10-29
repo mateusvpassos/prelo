@@ -208,7 +208,11 @@ Bands become flowing blocks, details become tables or lists, groups and `Sum/Cou
 ```
 Needs JDK 21 (the libraries target Java 17). The plugin builds against the local IDE in `ideaLocalPath` when it exists, otherwise it downloads `ideaVersion` (see `gradle.properties`).
 
-Releases: [RELEASING.md](RELEASING.md).
+Releases: [RELEASING.md](RELEASING.md). Changes per version: [CHANGELOG.md](CHANGELOG.md).
+
+## Contributing and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

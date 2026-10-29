@@ -1,0 +1,43 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      options:
+        - prelo-core (rendering)
+        - prelo-spring-boot-starter / prelo-quarkus
+        - prelo-server (CLI / HTTP)
+        - prelo-jrxml (Jasper migration)
+        - prelo-intellij (plugin)
+        - prelo-desktop (Windows app)
+        - Other / not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: And what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal template and data
+      description: The smallest `.report.json` and sample data that show the problem. Remove real personal data.
+      render: json
+  - type: input
+    id: version
+    attributes:
+      label: Prelo version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      placeholder: "Java 21, Spring Boot 3.5, Windows 11 / IntelliJ 2026.2"

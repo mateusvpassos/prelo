@@ -1,6 +1,7 @@
 name: Release
 
-# git tag v0.1.0 && git push origin v0.1.0
+# 1. CHANGELOG.md: troque "## [0.1.0] - unreleased" pela data (ou mova o Unreleased para a versão nova)
+# 2. git tag v0.1.0 && git push origin v0.1.0
 on:
   push:
     tags: ['v*']
@@ -26,6 +27,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Versão a partir da tag
         run: echo "VERSAO=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Notas a partir do CHANGELOG
+        run: |
+          grep -q "^## \[$VERSAO\] - [0-9]" CHANGELOG.md || { echo "::error::CHANGELOG.md precisa de \"## [$VERSAO] - AAAA-MM-DD\""; exit 1; }
+          bash scripts/release-notes.sh "$VERSAO" > notas.md
       - name: Testes
         run: ./gradlew build -x :prelo-intellij:build -PpreloVersion=$VERSAO --console=plain
       - name: Maven Central
@@ -39,6 +44,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          gh release create "$GITHUB_REF_NAME" --title "Prelo $VERSAO" --generate-notes
+          gh release create "$GITHUB_REF_NAME" --title "Prelo $VERSAO" --notes-file notas.md
           prelo-server/build/libs/prelo-server-$VERSAO-all.jar
           prelo-intellij/build/distributions/prelo-intellij-$VERSAO.zip

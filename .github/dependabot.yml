@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    ignore:
+      # o plugin compila contra a IDE de ideaVersion; atualizar junto com ela
+      - dependency-name: "org.jetbrains.intellij.platform"
+  - package-ecosystem: npm
+    directory: /prelo-desktop
+    schedule:
+      interval: weekly
+    groups:
+      electron:
+        patterns: ["electron", "electron-builder"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
